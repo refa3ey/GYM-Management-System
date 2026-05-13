@@ -1,3 +1,4 @@
+using GYM_Desktop_app.Helpers;
 using GYM_Desktop_app.Models;
 using System;
 using System.Collections.Generic;
@@ -440,15 +441,9 @@ namespace GYM_Desktop_app.Database
         public static Member FindMember(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) return null;
-            input = input.Trim();
+            input = QRHelper.ParseQRContent(input.Trim());
 
-            int memberID = 0;
-            if (input.StartsWith("MBR-", StringComparison.OrdinalIgnoreCase))
-                int.TryParse(input.Substring(4), out memberID);
-            else
-                int.TryParse(input, out memberID);
-
-            if (memberID <= 0) return null;
+            if (!int.TryParse(input, out int memberID) || memberID <= 0) return null;
 
             using (var conn = GetConnection())
             {
@@ -470,6 +465,16 @@ namespace GYM_Desktop_app.Database
         {
             var list = new List<Member>();
             if (string.IsNullOrWhiteSpace(search)) return list;
+
+            // QR code / numeric ID lookup
+            string parsed = QRHelper.ParseQRContent(search.Trim());
+            if (int.TryParse(parsed, out int memberID) && memberID > 0)
+            {
+                var m = FindMember(search);
+                if (m != null) list.Add(m);
+                return list;
+            }
+
             using (var conn = GetConnection())
             {
                 conn.Open();
@@ -484,6 +489,34 @@ namespace GYM_Desktop_app.Database
             }
             return list;
         }
+
+        public static string GetPlanNameByID(int planID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("SELECT PlanName FROM MembershipPlans WHERE PlanID=@id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", planID);
+                    var result = cmd.ExecuteScalar();
+                    return result != null ? result.ToString() : "Member";
+                }
+            }
+        }
+
+        public static int GetTodayCheckInCount()
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = "SELECT COUNT(*) FROM Attendance WHERE CAST(CheckInTime AS DATE) = CAST(GETDATE() AS DATE)";
+                using (var cmd = new SqlCommand(sql, conn))
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+            }
+        }
+
+        public static bool VerifyUserPassword(string username, string password)
+            => ValidateUser(username, password) != null;
 
         public static Member GetMemberByUserID(int userID)
         {

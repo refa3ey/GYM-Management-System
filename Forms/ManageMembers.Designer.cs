@@ -38,11 +38,15 @@ namespace GYM_Desktop_app.Forms
             this.btnUpdate      = new Guna.UI2.WinForms.Guna2Button();
             this.btnDelete      = new Guna.UI2.WinForms.Guna2Button();
             this.btnClear       = new Guna.UI2.WinForms.Guna2Button();
+            this.lblMemberQRLabel = new System.Windows.Forms.Label();
+            this.picMemberQR    = new System.Windows.Forms.PictureBox();
+            this.btnPrintCard   = new Guna.UI2.WinForms.Guna2Button();
             this.panelTopBar.SuspendLayout();
             this.panelSearch.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvMembers)).BeginInit();
             this.panelInputs.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numAge)).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picMemberQR)).BeginInit();
             this.SuspendLayout();
             //
             // panelTopBar
@@ -190,6 +194,9 @@ namespace GYM_Desktop_app.Forms
             this.panelInputs.Controls.Add(this.btnUpdate);
             this.panelInputs.Controls.Add(this.btnDelete);
             this.panelInputs.Controls.Add(this.btnClear);
+            this.panelInputs.Controls.Add(this.lblMemberQRLabel);
+            this.panelInputs.Controls.Add(this.picMemberQR);
+            this.panelInputs.Controls.Add(this.btnPrintCard);
             this.panelInputs.FillColor = System.Drawing.Color.White;
             this.panelInputs.Location = new System.Drawing.Point(10, 450);
             this.panelInputs.Name = "panelInputs";
@@ -372,6 +379,42 @@ namespace GYM_Desktop_app.Forms
             this.btnClear.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnClear.Click += new System.EventHandler(this.btnClear_Click);
             //
+            // lblMemberQRLabel
+            //
+            this.lblMemberQRLabel.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            this.lblMemberQRLabel.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(100)))), ((int)(((byte)(100)))));
+            this.lblMemberQRLabel.Location = new System.Drawing.Point(810, 12);
+            this.lblMemberQRLabel.Name = "lblMemberQRLabel";
+            this.lblMemberQRLabel.Size = new System.Drawing.Size(240, 17);
+            this.lblMemberQRLabel.TabIndex = 14;
+            this.lblMemberQRLabel.Text = "MEMBER QR CODE";
+            this.lblMemberQRLabel.TextAlign = System.Drawing.ContentAlignment.MiddleCenter;
+            //
+            // picMemberQR
+            //
+            this.picMemberQR.BackColor = System.Drawing.Color.White;
+            this.picMemberQR.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
+            this.picMemberQR.Location = new System.Drawing.Point(855, 32);
+            this.picMemberQR.Name = "picMemberQR";
+            this.picMemberQR.Size = new System.Drawing.Size(130, 130);
+            this.picMemberQR.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picMemberQR.TabIndex = 15;
+            this.picMemberQR.TabStop = false;
+            //
+            // btnPrintCard
+            //
+            this.btnPrintCard.BorderRadius = 8;
+            this.btnPrintCard.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(152)))), ((int)(((byte)(0)))));
+            this.btnPrintCard.Font = new System.Drawing.Font("Segoe UI", 9F, System.Drawing.FontStyle.Bold);
+            this.btnPrintCard.ForeColor = System.Drawing.Color.White;
+            this.btnPrintCard.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(130)))), ((int)(((byte)(0)))));
+            this.btnPrintCard.Location = new System.Drawing.Point(830, 170);
+            this.btnPrintCard.Name = "btnPrintCard";
+            this.btnPrintCard.Size = new System.Drawing.Size(200, 38);
+            this.btnPrintCard.TabIndex = 16;
+            this.btnPrintCard.Text = "Print Member Card";
+            this.btnPrintCard.Click += new System.EventHandler(this.btnPrintCard_Click);
+            //
             // ManageMembers
             //
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(247)))), ((int)(((byte)(250)))));
@@ -391,6 +434,7 @@ namespace GYM_Desktop_app.Forms
             ((System.ComponentModel.ISupportInitialize)(this.dgvMembers)).EndInit();
             this.panelInputs.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numAge)).EndInit();
+            ((System.ComponentModel.ISupportInitialize)(this.picMemberQR)).EndInit();
             this.ResumeLayout(false);
         }
 
@@ -420,5 +464,8 @@ namespace GYM_Desktop_app.Forms
         private Guna.UI2.WinForms.Guna2Button      btnUpdate;
         private Guna.UI2.WinForms.Guna2Button      btnDelete;
         private Guna.UI2.WinForms.Guna2Button      btnClear;
+        private System.Windows.Forms.Label         lblMemberQRLabel;
+        private System.Windows.Forms.PictureBox    picMemberQR;
+        private Guna.UI2.WinForms.Guna2Button      btnPrintCard;
     }
 }

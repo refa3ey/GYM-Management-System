@@ -4,8 +4,9 @@ using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using GYM_Desktop_app.Models;
 using GYM_Desktop_app.Database;
+using GYM_Desktop_app.Helpers;
+using GYM_Desktop_app.Models;
 
 namespace GYM_Desktop_app.Forms
 {
@@ -17,6 +18,7 @@ namespace GYM_Desktop_app.Forms
         private bool _dragging;
         private Point _dragStart;
         private int selectedMemberID = 0;
+        private Member _selectedMember = null;
         private List<Member> _allMembers = new List<Member>();
 
         public ManageMembers()
@@ -318,7 +320,28 @@ namespace GYM_Desktop_app.Forms
                 var plan   = plans.FirstOrDefault(p => p.PlanID == planID);
                 if (plan != null)
                     cmbPlan.SelectedItem = plan;
+
+                _selectedMember = (dgvMembers.DataSource as List<Member>)
+                    ?.FirstOrDefault(m => m.MemberID == selectedMemberID);
+
+                try
+                {
+                    var old = picMemberQR.Image;
+                    picMemberQR.Image = QRHelper.GenerateMemberQR(selectedMemberID, 4);
+                    old?.Dispose();
+                }
+                catch { }
             }
+        }
+
+        private void btnPrintCard_Click(object sender, EventArgs e)
+        {
+            if (_selectedMember == null)
+            {
+                MessageBox.Show("Please select a member from the table first.");
+                return;
+            }
+            new MemberCardPrintForm(_selectedMember).ShowDialog();
         }
 
         private bool ValidateInputs()
@@ -339,12 +362,16 @@ namespace GYM_Desktop_app.Forms
         private void ClearFields()
         {
             selectedMemberID = 0;
+            _selectedMember  = null;
             txtName.Clear();
             txtPhone.Clear();
             numAge.Value = 18;
             txtAddress.Clear();
             if (cmbPlan.Items.Count > 0)
                 cmbPlan.SelectedIndex = 0;
+            var old = picMemberQR.Image;
+            picMemberQR.Image = null;
+            old?.Dispose();
         }
     }
 }

@@ -66,6 +66,9 @@
     <Reference Include="Guna.UI2, Version=2.0.4.7, Culture=neutral, PublicKeyToken=8b9d14aa5142e261, processorArchitecture=MSIL">
       <HintPath>..\packages\Guna.UI2.WinForms.2.0.4.7\lib\net48\Guna.UI2.dll</HintPath>
     </Reference>
+    <Reference Include="QRCoder">
+      <HintPath>..\packages\QRCoder.1.4.3\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.VisualBasic" />
     <Reference Include="System" />
     <Reference Include="System.Configuration" />
@@ -87,11 +90,24 @@
     <Compile Include="Database\DatabaseHelper.cs" />
     <Compile Include="Helpers\Theme.cs" />
     <Compile Include="Helpers\ModernMessageBox.cs" />
+    <Compile Include="Helpers\QRHelper.cs" />
     <Compile Include="Forms\AttendanceForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="Forms\AttendanceForm.Designer.cs">
       <DependentUpon>AttendanceForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\CheckInStationForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\CheckInStationForm.Designer.cs">
+      <DependentUpon>CheckInStationForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\MemberCardPrintForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\MemberCardPrintForm.Designer.cs">
+      <DependentUpon>MemberCardPrintForm.cs</DependentUpon>
     </Compile>
     <Compile Include="Forms\AttendanceHistoryForm.cs">
       <SubType>Form</SubType>

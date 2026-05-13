@@ -137,6 +137,15 @@ namespace GYM_Desktop_app.Forms
         private void btnAttendance_Click(object sender, EventArgs e)
             => new AttendanceForm().ShowDialog();
 
+        private void btnStationMode_Click(object sender, EventArgs e)
+        {
+            var result = MessageBox.Show(
+                "Enter Check-In Station mode?\n\nThis will go fullscreen. Press the 'Exit Station' button (top-right) and enter the admin password to return.",
+                "Enter Station Mode", MessageBoxButtons.YesNo, MessageBoxIcon.Question);
+            if (result == DialogResult.Yes)
+                new CheckInStationForm(_currentUser).ShowDialog();
+        }
+
         private void btnManagePlans_Click(object sender, EventArgs e)
             => new ManagePlans().ShowDialog();
 

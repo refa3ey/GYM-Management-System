@@ -21,6 +21,13 @@ namespace GYM_Desktop_app.Forms
             this.btnChangePassword = new Guna.UI2.WinForms.Guna2Button();
             this.btnSelfCheckIn = new Guna.UI2.WinForms.Guna2Button();
             this.btnLogout = new Guna.UI2.WinForms.Guna2Button();
+            this.pnlMyQR = new Guna.UI2.WinForms.Guna2Panel();
+            this.lblQRTitle = new System.Windows.Forms.Label();
+            this.lblQRSubtitle = new System.Windows.Forms.Label();
+            this.picMyQR = new System.Windows.Forms.PictureBox();
+            this.lblMemberCode = new System.Windows.Forms.Label();
+            this.btnSaveQR = new Guna.UI2.WinForms.Guna2Button();
+            this.btnPrintCard = new Guna.UI2.WinForms.Guna2Button();
             this.panelTopBar = new Guna.UI2.WinForms.Guna2Panel();
             this.lblWelcome = new System.Windows.Forms.Label();
             this.btnClose = new Guna.UI2.WinForms.Guna2Button();
@@ -35,6 +42,8 @@ namespace GYM_Desktop_app.Forms
             this.panelSidebar.SuspendLayout();
             this.panelTopBar.SuspendLayout();
             this.panelInfoCard.SuspendLayout();
+            this.pnlMyQR.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.picMyQR)).BeginInit();
             this.SuspendLayout();
             // 
             // panelSidebar
@@ -47,7 +56,7 @@ namespace GYM_Desktop_app.Forms
             this.panelSidebar.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(60)))), ((int)(((byte)(65)))));
             this.panelSidebar.Location = new System.Drawing.Point(0, 0);
             this.panelSidebar.Name = "panelSidebar";
-            this.panelSidebar.Size = new System.Drawing.Size(240, 600);
+            this.panelSidebar.Size = new System.Drawing.Size(240, 700);
             this.panelSidebar.TabIndex = 0;
             this.panelSidebar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseDown);
             this.panelSidebar.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseMove);
@@ -127,7 +136,7 @@ namespace GYM_Desktop_app.Forms
             this.btnLogout.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(53)))), ((int)(((byte)(69)))));
             this.btnLogout.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnLogout.ForeColor = System.Drawing.Color.White;
-            this.btnLogout.Location = new System.Drawing.Point(20, 530);
+            this.btnLogout.Location = new System.Drawing.Point(20, 630);
             this.btnLogout.Name = "btnLogout";
             this.btnLogout.Size = new System.Drawing.Size(200, 45);
             this.btnLogout.TabIndex = 5;
@@ -261,15 +270,101 @@ namespace GYM_Desktop_app.Forms
             this.lblStatus.TabIndex = 6;
             this.lblStatus.Text = "—";
             this.lblStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-            // 
+            //
+            // pnlMyQR
+            //
+            this.pnlMyQR.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
+            this.pnlMyQR.BorderRadius = 12;
+            this.pnlMyQR.BorderThickness = 1;
+            this.pnlMyQR.Controls.Add(this.lblQRTitle);
+            this.pnlMyQR.Controls.Add(this.lblQRSubtitle);
+            this.pnlMyQR.Controls.Add(this.picMyQR);
+            this.pnlMyQR.Controls.Add(this.lblMemberCode);
+            this.pnlMyQR.Controls.Add(this.btnSaveQR);
+            this.pnlMyQR.Controls.Add(this.btnPrintCard);
+            this.pnlMyQR.FillColor = System.Drawing.Color.White;
+            this.pnlMyQR.Location = new System.Drawing.Point(270, 388);
+            this.pnlMyQR.Name = "pnlMyQR";
+            this.pnlMyQR.Size = new System.Drawing.Size(700, 290);
+            this.pnlMyQR.TabIndex = 5;
+            //
+            // lblQRTitle
+            //
+            this.lblQRTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblQRTitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.lblQRTitle.Location = new System.Drawing.Point(20, 15);
+            this.lblQRTitle.Name = "lblQRTitle";
+            this.lblQRTitle.Size = new System.Drawing.Size(400, 28);
+            this.lblQRTitle.TabIndex = 0;
+            this.lblQRTitle.Text = "Your Member QR Code";
+            //
+            // lblQRSubtitle
+            //
+            this.lblQRSubtitle.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.lblQRSubtitle.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(120)))), ((int)(((byte)(120)))), ((int)(((byte)(120)))));
+            this.lblQRSubtitle.Location = new System.Drawing.Point(20, 47);
+            this.lblQRSubtitle.Name = "lblQRSubtitle";
+            this.lblQRSubtitle.Size = new System.Drawing.Size(650, 22);
+            this.lblQRSubtitle.TabIndex = 1;
+            this.lblQRSubtitle.Text = "Show this at the gym entrance to check in";
+            //
+            // picMyQR
+            //
+            this.picMyQR.BackColor = System.Drawing.Color.White;
+            this.picMyQR.Location = new System.Drawing.Point(20, 78);
+            this.picMyQR.Name = "picMyQR";
+            this.picMyQR.Size = new System.Drawing.Size(200, 200);
+            this.picMyQR.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
+            this.picMyQR.TabIndex = 2;
+            this.picMyQR.TabStop = false;
+            //
+            // lblMemberCode
+            //
+            this.lblMemberCode.Font = new System.Drawing.Font("Segoe UI", 13F, System.Drawing.FontStyle.Bold);
+            this.lblMemberCode.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
+            this.lblMemberCode.Location = new System.Drawing.Point(240, 78);
+            this.lblMemberCode.Name = "lblMemberCode";
+            this.lblMemberCode.Size = new System.Drawing.Size(430, 32);
+            this.lblMemberCode.TabIndex = 3;
+            this.lblMemberCode.Text = "Code: MBR-...";
+            //
+            // btnSaveQR
+            //
+            this.btnSaveQR.BorderRadius = 8;
+            this.btnSaveQR.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
+            this.btnSaveQR.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnSaveQR.ForeColor = System.Drawing.Color.White;
+            this.btnSaveQR.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(77)))), ((int)(((byte)(80)))));
+            this.btnSaveQR.Location = new System.Drawing.Point(240, 126);
+            this.btnSaveQR.Name = "btnSaveQR";
+            this.btnSaveQR.Size = new System.Drawing.Size(200, 42);
+            this.btnSaveQR.TabIndex = 4;
+            this.btnSaveQR.Text = "Save as Image";
+            this.btnSaveQR.Click += new System.EventHandler(this.btnSaveQR_Click);
+            //
+            // btnPrintCard
+            //
+            this.btnPrintCard.BorderRadius = 8;
+            this.btnPrintCard.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(152)))), ((int)(((byte)(0)))));
+            this.btnPrintCard.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnPrintCard.ForeColor = System.Drawing.Color.White;
+            this.btnPrintCard.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(130)))), ((int)(((byte)(0)))));
+            this.btnPrintCard.Location = new System.Drawing.Point(240, 180);
+            this.btnPrintCard.Name = "btnPrintCard";
+            this.btnPrintCard.Size = new System.Drawing.Size(200, 42);
+            this.btnPrintCard.TabIndex = 5;
+            this.btnPrintCard.Text = "Print Member Card";
+            this.btnPrintCard.Click += new System.EventHandler(this.btnPrintCard_Click);
+            //
             // MemberDashboard
-            // 
+            //
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(247)))), ((int)(((byte)(250)))));
-            this.ClientSize = new System.Drawing.Size(1000, 600);
+            this.ClientSize = new System.Drawing.Size(1000, 700);
             this.Controls.Add(this.panelSidebar);
             this.Controls.Add(this.panelTopBar);
             this.Controls.Add(this.btnSelfCheckIn);
             this.Controls.Add(this.panelInfoCard);
+            this.Controls.Add(this.pnlMyQR);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
             this.Name = "MemberDashboard";
@@ -279,6 +374,8 @@ namespace GYM_Desktop_app.Forms
             this.panelSidebar.ResumeLayout(false);
             this.panelTopBar.ResumeLayout(false);
             this.panelInfoCard.ResumeLayout(false);
+            this.pnlMyQR.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.picMyQR)).EndInit();
             this.ResumeLayout(false);
 
         }
@@ -292,6 +389,13 @@ namespace GYM_Desktop_app.Forms
         private Guna.UI2.WinForms.Guna2Button btnChangePassword;
         private Guna.UI2.WinForms.Guna2Button btnSelfCheckIn;
         private Guna.UI2.WinForms.Guna2Button btnLogout;
+        private Guna.UI2.WinForms.Guna2Panel  pnlMyQR;
+        private System.Windows.Forms.Label    lblQRTitle;
+        private System.Windows.Forms.Label    lblQRSubtitle;
+        private System.Windows.Forms.PictureBox picMyQR;
+        private System.Windows.Forms.Label    lblMemberCode;
+        private Guna.UI2.WinForms.Guna2Button btnSaveQR;
+        private Guna.UI2.WinForms.Guna2Button btnPrintCard;
         private Guna.UI2.WinForms.Guna2Panel  panelTopBar;
         private System.Windows.Forms.Label    lblWelcome;
         private Guna.UI2.WinForms.Guna2Button btnClose;
