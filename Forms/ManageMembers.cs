@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
 using System.Runtime.InteropServices;
@@ -16,6 +17,7 @@ namespace GYM_Desktop_app.Forms
         private bool _dragging;
         private Point _dragStart;
         private int selectedMemberID = 0;
+        private List<Member> _allMembers = new List<Member>();
 
         public ManageMembers()
         {
@@ -46,30 +48,32 @@ namespace GYM_Desktop_app.Forms
 
         private void btnClose_Click(object sender, EventArgs e) => this.Close();
 
+        // ===== GRID STYLING =====
         private void ApplyGridStyle(DataGridView dgv)
         {
-            dgv.BackgroundColor                          = Color.White;
-            dgv.BorderStyle                              = BorderStyle.None;
-            dgv.GridColor                                = Color.FromArgb(230, 230, 230);
-            dgv.RowHeadersVisible                        = false;
-            dgv.AllowUserToAddRows                       = false;
-            dgv.SelectionMode                            = DataGridViewSelectionMode.FullRowSelect;
-            dgv.MultiSelect                              = false;
-            dgv.ReadOnly                                 = true;
-            dgv.EnableHeadersVisualStyles                = false;
-            dgv.RowTemplate.Height                       = 38;
-            dgv.DefaultCellStyle.Font                    = new Font("Segoe UI", 9.5f);
-            dgv.DefaultCellStyle.SelectionBackColor      = Color.FromArgb(0, 105, 110);
-            dgv.DefaultCellStyle.SelectionForeColor      = Color.White;
-            dgv.DefaultCellStyle.Padding                 = new Padding(5, 0, 5, 0);
+            dgv.BackgroundColor                           = Color.White;
+            dgv.BorderStyle                               = BorderStyle.None;
+            dgv.GridColor                                 = Color.FromArgb(230, 230, 230);
+            dgv.RowHeadersVisible                         = false;
+            dgv.AllowUserToAddRows                        = false;
+            dgv.SelectionMode                             = DataGridViewSelectionMode.FullRowSelect;
+            dgv.MultiSelect                               = false;
+            dgv.ReadOnly                                  = true;
+            dgv.EnableHeadersVisualStyles                 = false;
+            dgv.RowTemplate.Height                        = 38;
+            dgv.DefaultCellStyle.Font                     = new Font("Segoe UI", 9.5f);
+            dgv.DefaultCellStyle.SelectionBackColor       = Color.FromArgb(0, 105, 110);
+            dgv.DefaultCellStyle.SelectionForeColor       = Color.White;
+            dgv.DefaultCellStyle.Padding                  = new Padding(5, 0, 5, 0);
             dgv.AlternatingRowsDefaultCellStyle.BackColor = Color.FromArgb(245, 247, 250);
-            dgv.ColumnHeadersHeight                      = 42;
-            dgv.ColumnHeadersDefaultCellStyle.BackColor  = Color.FromArgb(0, 105, 110);
-            dgv.ColumnHeadersDefaultCellStyle.ForeColor  = Color.White;
-            dgv.ColumnHeadersDefaultCellStyle.Font       = new Font("Segoe UI", 9.5f, FontStyle.Bold);
-            dgv.ColumnHeadersDefaultCellStyle.Padding    = new Padding(5, 0, 5, 0);
+            dgv.ColumnHeadersHeight                       = 42;
+            dgv.ColumnHeadersDefaultCellStyle.BackColor   = Color.FromArgb(0, 105, 110);
+            dgv.ColumnHeadersDefaultCellStyle.ForeColor   = Color.White;
+            dgv.ColumnHeadersDefaultCellStyle.Font        = new Font("Segoe UI", 9.5f, FontStyle.Bold);
+            dgv.ColumnHeadersDefaultCellStyle.Padding     = new Padding(5, 0, 5, 0);
         }
 
+        // ===== DATA LOADING =====
         private void LoadPlans()
         {
             try
@@ -89,8 +93,8 @@ namespace GYM_Desktop_app.Forms
         {
             try
             {
-                dgvMembers.DataSource = null;
-                dgvMembers.DataSource = DatabaseHelper.GetAllMembers();
+                _allMembers = DatabaseHelper.GetAllMembers();
+                ApplyFilters();
             }
             catch (Exception ex)
             {
@@ -98,6 +102,95 @@ namespace GYM_Desktop_app.Forms
             }
         }
 
+        // ===== SEARCH & FILTER =====
+        private void ApplyFilters()
+        {
+            IEnumerable<Member> filtered = _allMembers;
+
+            string search = txtSearch.Text.Trim();
+            if (!string.IsNullOrWhiteSpace(search))
+            {
+                filtered = filtered.Where(m =>
+                    (m.Name    ?? "").IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (m.Phone   ?? "").IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0 ||
+                    (m.Address ?? "").IndexOf(search, StringComparison.OrdinalIgnoreCase) >= 0);
+            }
+
+            var now = DateTime.Now;
+            switch (cmbFilter.SelectedIndex)
+            {
+                case 1: // Active
+                    filtered = filtered.Where(m => m.MembershipExpiry > now);
+                    break;
+                case 2: // Expired
+                    filtered = filtered.Where(m => m.MembershipExpiry <= now);
+                    break;
+                case 3: // Expiring Soon (7 days)
+                    filtered = filtered.Where(m => m.MembershipExpiry > now &&
+                                                   m.MembershipExpiry <= now.AddDays(7));
+                    break;
+            }
+
+            var list = filtered.ToList();
+            dgvMembers.DataSource = null;
+            dgvMembers.DataSource = list;
+            lblResultCount.Text = $"Showing {list.Count} of {_allMembers.Count} members";
+        }
+
+        private void txtSearch_TextChanged(object sender, EventArgs e) => ApplyFilters();
+
+        private void cmbFilter_SelectedIndexChanged(object sender, EventArgs e) => ApplyFilters();
+
+        private void btnRefresh_Click(object sender, EventArgs e) => LoadMembers();
+
+        // ===== ROW COLORING =====
+        private void dgvMembers_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
+        {
+            if (e.RowIndex < 0) return;
+            var list = dgvMembers.DataSource as List<Member>;
+            if (list == null || e.RowIndex >= list.Count) return;
+
+            var m   = list[e.RowIndex];
+            var now = DateTime.Now;
+
+            if (m.MembershipExpiry <= now)
+                e.CellStyle.BackColor = Color.FromArgb(255, 230, 230);
+            else if (m.MembershipExpiry <= now.AddDays(7))
+                e.CellStyle.BackColor = Color.FromArgb(255, 248, 220);
+        }
+
+        // ===== COLUMN POLISH =====
+        private void dgvMembers_DataBindingComplete(object sender, DataGridViewBindingCompleteEventArgs e)
+        {
+            if (dgvMembers.Columns.Count == 0) return;
+
+            if (dgvMembers.Columns.Contains("UserID"))
+                dgvMembers.Columns["UserID"].Visible = false;
+
+            var headers = new Dictionary<string, string>
+            {
+                { "MemberID",         "ID"      },
+                { "Name",             "Name"    },
+                { "Phone",            "Phone"   },
+                { "Age",              "Age"     },
+                { "Address",          "Address" },
+                { "JoinDate",         "Joined"  },
+                { "PlanID",           "Plan"    },
+                { "MembershipExpiry", "Expires" }
+            };
+
+            foreach (var kv in headers)
+                if (dgvMembers.Columns.Contains(kv.Key))
+                    dgvMembers.Columns[kv.Key].HeaderText = kv.Value;
+
+            if (dgvMembers.Columns.Contains("JoinDate"))
+                dgvMembers.Columns["JoinDate"].DefaultCellStyle.Format = "MMM dd, yyyy";
+
+            if (dgvMembers.Columns.Contains("MembershipExpiry"))
+                dgvMembers.Columns["MembershipExpiry"].DefaultCellStyle.Format = "MMM dd, yyyy";
+        }
+
+        // ===== CRUD HANDLERS =====
         private void btnAdd_Click(object sender, EventArgs e)
         {
             if (!ValidateInputs()) return;
@@ -220,9 +313,9 @@ namespace GYM_Desktop_app.Forms
                 numAge.Value     = Convert.ToInt32(row.Cells["Age"].Value);
                 txtAddress.Text  = row.Cells["Address"].Value?.ToString() ?? "";
 
-                int planID   = Convert.ToInt32(row.Cells["PlanID"].Value);
-                var plans    = (System.Collections.Generic.List<MembershipPlan>)cmbPlan.DataSource;
-                var plan     = plans.FirstOrDefault(p => p.PlanID == planID);
+                int planID = Convert.ToInt32(row.Cells["PlanID"].Value);
+                var plans  = (List<MembershipPlan>)cmbPlan.DataSource;
+                var plan   = plans.FirstOrDefault(p => p.PlanID == planID);
                 if (plan != null)
                     cmbPlan.SelectedItem = plan;
             }
