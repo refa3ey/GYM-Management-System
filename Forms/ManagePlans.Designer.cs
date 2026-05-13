@@ -6,10 +6,7 @@ namespace GYM_Desktop_app.Forms
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
@@ -17,219 +14,266 @@ namespace GYM_Desktop_app.Forms
 
         private void InitializeComponent()
         {
+            this.panelTopBar = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTitle = new System.Windows.Forms.Label();
+            this.btnClose = new Guna.UI2.WinForms.Guna2Button();
             this.dgvPlans = new System.Windows.Forms.DataGridView();
-            this.grpInputs = new System.Windows.Forms.GroupBox();
+            this.panelInputs = new Guna.UI2.WinForms.Guna2Panel();
             this.lblPlanName = new System.Windows.Forms.Label();
-            this.txtPlanName = new System.Windows.Forms.TextBox();
+            this.txtPlanName = new Guna.UI2.WinForms.Guna2TextBox();
             this.lblDuration = new System.Windows.Forms.Label();
             this.numDuration = new System.Windows.Forms.NumericUpDown();
             this.lblPrice = new System.Windows.Forms.Label();
             this.numPrice = new System.Windows.Forms.NumericUpDown();
-            this.btnAdd = new System.Windows.Forms.Button();
-            this.btnUpdate = new System.Windows.Forms.Button();
-            this.btnDelete = new System.Windows.Forms.Button();
-            this.btnClose = new System.Windows.Forms.Button();
+            this.btnAdd = new Guna.UI2.WinForms.Guna2Button();
+            this.btnUpdate = new Guna.UI2.WinForms.Guna2Button();
+            this.btnDelete = new Guna.UI2.WinForms.Guna2Button();
+            this.panelTopBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvPlans)).BeginInit();
-            this.grpInputs.SuspendLayout();
+            this.panelInputs.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.numDuration)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.numPrice)).BeginInit();
             this.SuspendLayout();
-            //
+            // 
+            // panelTopBar
+            // 
+            this.panelTopBar.Controls.Add(this.lblTitle);
+            this.panelTopBar.Controls.Add(this.btnClose);
+            this.panelTopBar.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(77)))), ((int)(((byte)(80)))));
+            this.panelTopBar.Location = new System.Drawing.Point(0, 0);
+            this.panelTopBar.Name = "panelTopBar";
+            this.panelTopBar.Size = new System.Drawing.Size(820, 55);
+            this.panelTopBar.TabIndex = 0;
+            this.panelTopBar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseDown);
+            this.panelTopBar.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseMove);
+            this.panelTopBar.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseUp);
+            // 
             // lblTitle
-            //
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.ForeColor = System.Drawing.Color.Teal;
-            this.lblTitle.Location = new System.Drawing.Point(200, 15);
+            // 
+            this.lblTitle.BackColor = System.Drawing.Color.Transparent;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.White;
+            this.lblTitle.Location = new System.Drawing.Point(20, 12);
             this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(400, 30);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "MANAGE MEMBERSHIP PLANS";
-            //
+            this.lblTitle.Text = "Manage Membership Plans";
+            // 
+            // btnClose
+            // 
+            this.btnClose.BorderRadius = 20;
+            this.btnClose.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(53)))), ((int)(((byte)(69)))));
+            this.btnClose.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnClose.ForeColor = System.Drawing.Color.White;
+            this.btnClose.Location = new System.Drawing.Point(780, 13);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(28, 28);
+            this.btnClose.TabIndex = 0;
+            this.btnClose.Text = "✕";
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
             // dgvPlans
-            //
+            // 
             this.dgvPlans.AllowUserToAddRows = false;
             this.dgvPlans.BackgroundColor = System.Drawing.Color.White;
-            this.dgvPlans.Location = new System.Drawing.Point(20, 50);
+            this.dgvPlans.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvPlans.ColumnHeadersHeight = 29;
+            this.dgvPlans.EnableHeadersVisualStyles = false;
+            this.dgvPlans.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
+            this.dgvPlans.Location = new System.Drawing.Point(10, 68);
             this.dgvPlans.MultiSelect = false;
             this.dgvPlans.Name = "dgvPlans";
             this.dgvPlans.ReadOnly = true;
+            this.dgvPlans.RowHeadersVisible = false;
+            this.dgvPlans.RowHeadersWidth = 51;
             this.dgvPlans.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvPlans.Size = new System.Drawing.Size(650, 200);
+            this.dgvPlans.Size = new System.Drawing.Size(800, 280);
             this.dgvPlans.TabIndex = 1;
             this.dgvPlans.CellClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dgvPlans_CellClick);
-            //
-            // grpInputs
-            //
-            this.grpInputs.Controls.Add(this.lblPlanName);
-            this.grpInputs.Controls.Add(this.txtPlanName);
-            this.grpInputs.Controls.Add(this.lblDuration);
-            this.grpInputs.Controls.Add(this.numDuration);
-            this.grpInputs.Controls.Add(this.lblPrice);
-            this.grpInputs.Controls.Add(this.numPrice);
-            this.grpInputs.Controls.Add(this.btnAdd);
-            this.grpInputs.Controls.Add(this.btnUpdate);
-            this.grpInputs.Controls.Add(this.btnDelete);
-            this.grpInputs.Controls.Add(this.btnClose);
-            this.grpInputs.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.grpInputs.ForeColor = System.Drawing.Color.Teal;
-            this.grpInputs.Location = new System.Drawing.Point(20, 270);
-            this.grpInputs.Name = "grpInputs";
-            this.grpInputs.Size = new System.Drawing.Size(650, 130);
-            this.grpInputs.TabIndex = 2;
-            this.grpInputs.TabStop = false;
-            this.grpInputs.Text = "Plan Details";
-            //
+            // 
+            // panelInputs
+            // 
+            this.panelInputs.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
+            this.panelInputs.BorderRadius = 12;
+            this.panelInputs.BorderThickness = 1;
+            this.panelInputs.Controls.Add(this.lblPlanName);
+            this.panelInputs.Controls.Add(this.txtPlanName);
+            this.panelInputs.Controls.Add(this.lblDuration);
+            this.panelInputs.Controls.Add(this.numDuration);
+            this.panelInputs.Controls.Add(this.lblPrice);
+            this.panelInputs.Controls.Add(this.numPrice);
+            this.panelInputs.Controls.Add(this.btnAdd);
+            this.panelInputs.Controls.Add(this.btnUpdate);
+            this.panelInputs.Controls.Add(this.btnDelete);
+            this.panelInputs.FillColor = System.Drawing.Color.White;
+            this.panelInputs.Location = new System.Drawing.Point(10, 362);
+            this.panelInputs.Name = "panelInputs";
+            this.panelInputs.Size = new System.Drawing.Size(800, 165);
+            this.panelInputs.TabIndex = 2;
+            // 
             // lblPlanName
-            //
-            this.lblPlanName.AutoSize = true;
-            this.lblPlanName.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPlanName.ForeColor = System.Drawing.Color.Black;
-            this.lblPlanName.Location = new System.Drawing.Point(15, 30);
+            // 
+            this.lblPlanName.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            this.lblPlanName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(100)))), ((int)(((byte)(100)))));
+            this.lblPlanName.Location = new System.Drawing.Point(20, 15);
             this.lblPlanName.Name = "lblPlanName";
+            this.lblPlanName.Size = new System.Drawing.Size(340, 17);
             this.lblPlanName.TabIndex = 0;
-            this.lblPlanName.Text = "Plan Name:";
-            //
+            this.lblPlanName.Text = "PLAN NAME";
+            // 
             // txtPlanName
-            //
-            this.txtPlanName.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.txtPlanName.Location = new System.Drawing.Point(100, 28);
+            // 
+            this.txtPlanName.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(200)))), ((int)(((byte)(200)))), ((int)(((byte)(200)))));
+            this.txtPlanName.BorderRadius = 8;
+            this.txtPlanName.Cursor = System.Windows.Forms.Cursors.IBeam;
+            this.txtPlanName.DefaultText = "";
+            this.txtPlanName.FocusedState.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
+            this.txtPlanName.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.txtPlanName.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.txtPlanName.Location = new System.Drawing.Point(20, 35);
+            this.txtPlanName.Margin = new System.Windows.Forms.Padding(3, 5, 3, 5);
             this.txtPlanName.Name = "txtPlanName";
-            this.txtPlanName.Size = new System.Drawing.Size(180, 25);
+            this.txtPlanName.PlaceholderText = "";
+            this.txtPlanName.SelectedText = "";
+            this.txtPlanName.Size = new System.Drawing.Size(315, 38);
             this.txtPlanName.TabIndex = 1;
-            //
+            // 
             // lblDuration
-            //
-            this.lblDuration.AutoSize = true;
-            this.lblDuration.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblDuration.ForeColor = System.Drawing.Color.Black;
-            this.lblDuration.Location = new System.Drawing.Point(295, 30);
+            // 
+            this.lblDuration.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            this.lblDuration.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(100)))), ((int)(((byte)(100)))));
+            this.lblDuration.Location = new System.Drawing.Point(360, 15);
             this.lblDuration.Name = "lblDuration";
+            this.lblDuration.Size = new System.Drawing.Size(340, 17);
             this.lblDuration.TabIndex = 2;
-            this.lblDuration.Text = "Duration (months):";
-            //
+            this.lblDuration.Text = "DURATION (MONTHS)";
+            // 
             // numDuration
-            //
-            this.numDuration.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.numDuration.Location = new System.Drawing.Point(420, 28);
-            this.numDuration.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
-            this.numDuration.Maximum = new decimal(new int[] { 36, 0, 0, 0 });
-            this.numDuration.Value = new decimal(new int[] { 1, 0, 0, 0 });
+            // 
+            this.numDuration.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.numDuration.Location = new System.Drawing.Point(360, 35);
+            this.numDuration.Maximum = new decimal(new int[] {
+            36,
+            0,
+            0,
+            0});
+            this.numDuration.Minimum = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
             this.numDuration.Name = "numDuration";
-            this.numDuration.Size = new System.Drawing.Size(60, 25);
+            this.numDuration.Size = new System.Drawing.Size(170, 30);
             this.numDuration.TabIndex = 3;
-            //
+            this.numDuration.Value = new decimal(new int[] {
+            1,
+            0,
+            0,
+            0});
+            // 
             // lblPrice
-            //
-            this.lblPrice.AutoSize = true;
-            this.lblPrice.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblPrice.ForeColor = System.Drawing.Color.Black;
-            this.lblPrice.Location = new System.Drawing.Point(500, 30);
+            // 
+            this.lblPrice.Font = new System.Drawing.Font("Segoe UI", 8F, System.Drawing.FontStyle.Bold);
+            this.lblPrice.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(100)))), ((int)(((byte)(100)))), ((int)(((byte)(100)))));
+            this.lblPrice.Location = new System.Drawing.Point(560, 15);
             this.lblPrice.Name = "lblPrice";
+            this.lblPrice.Size = new System.Drawing.Size(340, 17);
             this.lblPrice.TabIndex = 4;
-            this.lblPrice.Text = "Price:";
-            //
+            this.lblPrice.Text = "PRICE ($)";
+            // 
             // numPrice
-            //
+            // 
             this.numPrice.DecimalPlaces = 2;
-            this.numPrice.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.numPrice.Location = new System.Drawing.Point(545, 28);
-            this.numPrice.Maximum = new decimal(new int[] { 99999, 0, 0, 0 });
+            this.numPrice.Font = new System.Drawing.Font("Segoe UI", 10F);
+            this.numPrice.Location = new System.Drawing.Point(560, 35);
+            this.numPrice.Maximum = new decimal(new int[] {
+            99999,
+            0,
+            0,
+            0});
             this.numPrice.Name = "numPrice";
-            this.numPrice.Size = new System.Drawing.Size(90, 25);
+            this.numPrice.Size = new System.Drawing.Size(220, 30);
             this.numPrice.TabIndex = 5;
-            //
+            // 
             // btnAdd
-            //
-            this.btnAdd.BackColor = System.Drawing.Color.Green;
-            this.btnAdd.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnAdd.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            // 
+            this.btnAdd.BorderRadius = 8;
+            this.btnAdd.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
+            this.btnAdd.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnAdd.ForeColor = System.Drawing.Color.White;
-            this.btnAdd.Location = new System.Drawing.Point(15, 75);
+            this.btnAdd.Location = new System.Drawing.Point(20, 100);
             this.btnAdd.Name = "btnAdd";
-            this.btnAdd.Size = new System.Drawing.Size(120, 35);
+            this.btnAdd.Size = new System.Drawing.Size(155, 40);
             this.btnAdd.TabIndex = 6;
-            this.btnAdd.Text = "Add Plan";
-            this.btnAdd.UseVisualStyleBackColor = false;
+            this.btnAdd.Text = "  Add Plan";
+            this.btnAdd.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnAdd.Click += new System.EventHandler(this.btnAdd_Click);
-            //
+            // 
             // btnUpdate
-            //
-            this.btnUpdate.BackColor = System.Drawing.Color.DarkOrange;
-            this.btnUpdate.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnUpdate.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            // 
+            this.btnUpdate.BorderRadius = 8;
+            this.btnUpdate.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(152)))), ((int)(((byte)(0)))));
+            this.btnUpdate.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnUpdate.ForeColor = System.Drawing.Color.White;
-            this.btnUpdate.Location = new System.Drawing.Point(275, 75);
+            this.btnUpdate.Location = new System.Drawing.Point(190, 100);
             this.btnUpdate.Name = "btnUpdate";
-            this.btnUpdate.Size = new System.Drawing.Size(120, 35);
+            this.btnUpdate.Size = new System.Drawing.Size(155, 40);
             this.btnUpdate.TabIndex = 9;
-            this.btnUpdate.Text = "Update Plan";
-            this.btnUpdate.UseVisualStyleBackColor = false;
+            this.btnUpdate.Text = "  Update Plan";
+            this.btnUpdate.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnUpdate.Click += new System.EventHandler(this.btnUpdate_Click);
-            //
+            // 
             // btnDelete
-            //
-            this.btnDelete.BackColor = System.Drawing.Color.Crimson;
-            this.btnDelete.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnDelete.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            // 
+            this.btnDelete.BorderRadius = 8;
+            this.btnDelete.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(53)))), ((int)(((byte)(69)))));
+            this.btnDelete.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnDelete.ForeColor = System.Drawing.Color.White;
-            this.btnDelete.Location = new System.Drawing.Point(145, 75);
+            this.btnDelete.Location = new System.Drawing.Point(360, 100);
             this.btnDelete.Name = "btnDelete";
-            this.btnDelete.Size = new System.Drawing.Size(120, 35);
+            this.btnDelete.Size = new System.Drawing.Size(155, 40);
             this.btnDelete.TabIndex = 7;
-            this.btnDelete.Text = "Delete";
-            this.btnDelete.UseVisualStyleBackColor = false;
+            this.btnDelete.Text = "  Delete";
+            this.btnDelete.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnDelete.Click += new System.EventHandler(this.btnDelete_Click);
-            //
-            // btnClose
-            //
-            this.btnClose.BackColor = System.Drawing.Color.DarkSlateGray;
-            this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnClose.Font = new System.Drawing.Font("Microsoft Sans Serif", 9F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClose.ForeColor = System.Drawing.Color.White;
-            this.btnClose.Location = new System.Drawing.Point(515, 75);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(120, 35);
-            this.btnClose.TabIndex = 8;
-            this.btnClose.Text = "Close";
-            this.btnClose.UseVisualStyleBackColor = false;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
-            //
+            // 
             // ManagePlans
-            //
-            this.BackColor = System.Drawing.Color.LightBlue;
-            this.ClientSize = new System.Drawing.Size(700, 420);
-            this.Controls.Add(this.lblTitle);
+            // 
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(247)))), ((int)(((byte)(250)))));
+            this.ClientSize = new System.Drawing.Size(820, 540);
+            this.Controls.Add(this.panelTopBar);
             this.Controls.Add(this.dgvPlans);
-            this.Controls.Add(this.grpInputs);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Controls.Add(this.panelInputs);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
             this.Name = "ManagePlans";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Manage Plans";
+            this.Load += new System.EventHandler(this.ManagePlans_Load);
+            this.panelTopBar.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvPlans)).EndInit();
-            this.grpInputs.ResumeLayout(false);
-            this.grpInputs.PerformLayout();
+            this.panelInputs.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.numDuration)).EndInit();
             ((System.ComponentModel.ISupportInitialize)(this.numPrice)).EndInit();
             this.ResumeLayout(false);
-            this.PerformLayout();
+
         }
 
         #endregion
 
-        private System.Windows.Forms.Label lblTitle;
+        private Guna.UI2.WinForms.Guna2Panel    panelTopBar;
+        private System.Windows.Forms.Label      lblTitle;
+        private Guna.UI2.WinForms.Guna2Button   btnClose;
         private System.Windows.Forms.DataGridView dgvPlans;
-        private System.Windows.Forms.GroupBox grpInputs;
-        private System.Windows.Forms.Label lblPlanName;
-        private System.Windows.Forms.TextBox txtPlanName;
-        private System.Windows.Forms.Label lblDuration;
+        private Guna.UI2.WinForms.Guna2Panel    panelInputs;
+        private System.Windows.Forms.Label      lblPlanName;
+        private Guna.UI2.WinForms.Guna2TextBox  txtPlanName;
+        private System.Windows.Forms.Label      lblDuration;
         private System.Windows.Forms.NumericUpDown numDuration;
-        private System.Windows.Forms.Label lblPrice;
+        private System.Windows.Forms.Label      lblPrice;
         private System.Windows.Forms.NumericUpDown numPrice;
-        private System.Windows.Forms.Button btnAdd;
-        private System.Windows.Forms.Button btnUpdate;
-        private System.Windows.Forms.Button btnDelete;
-        private System.Windows.Forms.Button btnClose;
+        private Guna.UI2.WinForms.Guna2Button   btnAdd;
+        private Guna.UI2.WinForms.Guna2Button   btnUpdate;
+        private Guna.UI2.WinForms.Guna2Button   btnDelete;
     }
 }

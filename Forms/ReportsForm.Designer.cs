@@ -6,10 +6,7 @@ namespace GYM_Desktop_app.Forms
 
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
+            if (disposing && (components != null)) components.Dispose();
             base.Dispose(disposing);
         }
 
@@ -17,128 +14,149 @@ namespace GYM_Desktop_app.Forms
 
         private void InitializeComponent()
         {
+            this.panelTopBar = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTitle = new System.Windows.Forms.Label();
+            this.btnClose = new Guna.UI2.WinForms.Guna2Button();
             this.dgvReport = new System.Windows.Forms.DataGridView();
-            this.grpSummary = new System.Windows.Forms.GroupBox();
+            this.panelSummary = new Guna.UI2.WinForms.Guna2Panel();
             this.lblTotalPayments = new System.Windows.Forms.Label();
             this.lblTotalAmount = new System.Windows.Forms.Label();
-            this.btnRefresh = new System.Windows.Forms.Button();
-            this.btnClose = new System.Windows.Forms.Button();
+            this.btnRefresh = new Guna.UI2.WinForms.Guna2Button();
+            this.panelTopBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvReport)).BeginInit();
-            this.grpSummary.SuspendLayout();
+            this.panelSummary.SuspendLayout();
             this.SuspendLayout();
-            //
+            // 
+            // panelTopBar
+            // 
+            this.panelTopBar.Controls.Add(this.lblTitle);
+            this.panelTopBar.Controls.Add(this.btnClose);
+            this.panelTopBar.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(77)))), ((int)(((byte)(80)))));
+            this.panelTopBar.Location = new System.Drawing.Point(0, 0);
+            this.panelTopBar.Name = "panelTopBar";
+            this.panelTopBar.Size = new System.Drawing.Size(920, 55);
+            this.panelTopBar.TabIndex = 0;
+            this.panelTopBar.MouseDown += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseDown);
+            this.panelTopBar.MouseMove += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseMove);
+            this.panelTopBar.MouseUp += new System.Windows.Forms.MouseEventHandler(this.DragPanel_MouseUp);
+            // 
             // lblTitle
-            //
-            this.lblTitle.AutoSize = true;
-            this.lblTitle.Font = new System.Drawing.Font("Microsoft Sans Serif", 14F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTitle.ForeColor = System.Drawing.Color.Teal;
-            this.lblTitle.Location = new System.Drawing.Point(300, 15);
+            // 
+            this.lblTitle.BackColor = System.Drawing.Color.Transparent;
+            this.lblTitle.Font = new System.Drawing.Font("Segoe UI", 14F, System.Drawing.FontStyle.Bold);
+            this.lblTitle.ForeColor = System.Drawing.Color.White;
+            this.lblTitle.Location = new System.Drawing.Point(20, 12);
             this.lblTitle.Name = "lblTitle";
+            this.lblTitle.Size = new System.Drawing.Size(400, 30);
             this.lblTitle.TabIndex = 0;
-            this.lblTitle.Text = "PAYMENT REPORT";
-            //
+            this.lblTitle.Text = "Payment Reports";
+            // 
+            // btnClose
+            // 
+            this.btnClose.BorderRadius = 20;
+            this.btnClose.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(220)))), ((int)(((byte)(53)))), ((int)(((byte)(69)))));
+            this.btnClose.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnClose.ForeColor = System.Drawing.Color.White;
+            this.btnClose.Location = new System.Drawing.Point(880, 13);
+            this.btnClose.Name = "btnClose";
+            this.btnClose.Size = new System.Drawing.Size(28, 28);
+            this.btnClose.TabIndex = 0;
+            this.btnClose.Text = "✕";
+            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
+            // 
             // dgvReport
-            //
+            // 
             this.dgvReport.AllowUserToAddRows = false;
             this.dgvReport.BackgroundColor = System.Drawing.Color.White;
-            this.dgvReport.Location = new System.Drawing.Point(20, 60);
+            this.dgvReport.BorderStyle = System.Windows.Forms.BorderStyle.None;
+            this.dgvReport.ColumnHeadersHeight = 29;
+            this.dgvReport.EnableHeadersVisualStyles = false;
+            this.dgvReport.GridColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
+            this.dgvReport.Location = new System.Drawing.Point(10, 68);
             this.dgvReport.Name = "dgvReport";
             this.dgvReport.ReadOnly = true;
+            this.dgvReport.RowHeadersVisible = false;
+            this.dgvReport.RowHeadersWidth = 51;
             this.dgvReport.SelectionMode = System.Windows.Forms.DataGridViewSelectionMode.FullRowSelect;
-            this.dgvReport.Size = new System.Drawing.Size(750, 350);
+            this.dgvReport.Size = new System.Drawing.Size(900, 400);
             this.dgvReport.TabIndex = 1;
-            //
-            // grpSummary
-            //
-            this.grpSummary.Controls.Add(this.lblTotalPayments);
-            this.grpSummary.Controls.Add(this.lblTotalAmount);
-            this.grpSummary.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.grpSummary.ForeColor = System.Drawing.Color.Teal;
-            this.grpSummary.Location = new System.Drawing.Point(20, 420);
-            this.grpSummary.Name = "grpSummary";
-            this.grpSummary.Size = new System.Drawing.Size(500, 65);
-            this.grpSummary.TabIndex = 2;
-            this.grpSummary.TabStop = false;
-            this.grpSummary.Text = "Summary";
-            //
+            // 
+            // panelSummary
+            // 
+            this.panelSummary.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(230)))), ((int)(((byte)(230)))), ((int)(((byte)(230)))));
+            this.panelSummary.BorderRadius = 12;
+            this.panelSummary.BorderThickness = 1;
+            this.panelSummary.Controls.Add(this.lblTotalPayments);
+            this.panelSummary.Controls.Add(this.lblTotalAmount);
+            this.panelSummary.Controls.Add(this.btnRefresh);
+            this.panelSummary.FillColor = System.Drawing.Color.White;
+            this.panelSummary.Location = new System.Drawing.Point(10, 482);
+            this.panelSummary.Name = "panelSummary";
+            this.panelSummary.Size = new System.Drawing.Size(900, 70);
+            this.panelSummary.TabIndex = 2;
+            // 
             // lblTotalPayments
-            //
-            this.lblTotalPayments.AutoSize = true;
-            this.lblTotalPayments.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTotalPayments.ForeColor = System.Drawing.Color.Black;
-            this.lblTotalPayments.Location = new System.Drawing.Point(20, 30);
+            // 
+            this.lblTotalPayments.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblTotalPayments.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(33)))), ((int)(((byte)(33)))), ((int)(((byte)(33)))));
+            this.lblTotalPayments.Location = new System.Drawing.Point(20, 20);
             this.lblTotalPayments.Name = "lblTotalPayments";
+            this.lblTotalPayments.Size = new System.Drawing.Size(280, 30);
             this.lblTotalPayments.TabIndex = 0;
             this.lblTotalPayments.Text = "Total Payments: 0";
-            //
+            // 
             // lblTotalAmount
-            //
-            this.lblTotalAmount.AutoSize = true;
-            this.lblTotalAmount.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.lblTotalAmount.ForeColor = System.Drawing.Color.Green;
-            this.lblTotalAmount.Location = new System.Drawing.Point(230, 30);
+            // 
+            this.lblTotalAmount.Font = new System.Drawing.Font("Segoe UI", 11F, System.Drawing.FontStyle.Bold);
+            this.lblTotalAmount.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
+            this.lblTotalAmount.Location = new System.Drawing.Point(320, 20);
             this.lblTotalAmount.Name = "lblTotalAmount";
+            this.lblTotalAmount.Size = new System.Drawing.Size(280, 30);
             this.lblTotalAmount.TabIndex = 1;
             this.lblTotalAmount.Text = "Total Amount: $0.00";
-            //
+            // 
             // btnRefresh
-            //
-            this.btnRefresh.BackColor = System.Drawing.Color.Teal;
-            this.btnRefresh.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnRefresh.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            // 
+            this.btnRefresh.BorderRadius = 8;
+            this.btnRefresh.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
+            this.btnRefresh.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
             this.btnRefresh.ForeColor = System.Drawing.Color.White;
-            this.btnRefresh.Location = new System.Drawing.Point(540, 430);
+            this.btnRefresh.Location = new System.Drawing.Point(760, 15);
             this.btnRefresh.Name = "btnRefresh";
-            this.btnRefresh.Size = new System.Drawing.Size(110, 35);
+            this.btnRefresh.Size = new System.Drawing.Size(120, 40);
             this.btnRefresh.TabIndex = 3;
             this.btnRefresh.Text = "Refresh";
-            this.btnRefresh.UseVisualStyleBackColor = false;
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-            //
-            // btnClose
-            //
-            this.btnClose.BackColor = System.Drawing.Color.Crimson;
-            this.btnClose.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.btnClose.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.btnClose.ForeColor = System.Drawing.Color.White;
-            this.btnClose.Location = new System.Drawing.Point(660, 430);
-            this.btnClose.Name = "btnClose";
-            this.btnClose.Size = new System.Drawing.Size(110, 35);
-            this.btnClose.TabIndex = 4;
-            this.btnClose.Text = "Close";
-            this.btnClose.UseVisualStyleBackColor = false;
-            this.btnClose.Click += new System.EventHandler(this.btnClose_Click);
-            //
+            // 
             // ReportsForm
-            //
-            this.BackColor = System.Drawing.Color.LightBlue;
-            this.ClientSize = new System.Drawing.Size(800, 490);
-            this.Controls.Add(this.lblTitle);
+            // 
+            this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(247)))), ((int)(((byte)(250)))));
+            this.ClientSize = new System.Drawing.Size(920, 570);
+            this.Controls.Add(this.panelTopBar);
             this.Controls.Add(this.dgvReport);
-            this.Controls.Add(this.grpSummary);
-            this.Controls.Add(this.btnRefresh);
-            this.Controls.Add(this.btnClose);
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
+            this.Controls.Add(this.panelSummary);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
             this.Name = "ReportsForm";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Payment Reports";
+            this.Load += new System.EventHandler(this.ReportsForm_Load);
+            this.panelTopBar.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dgvReport)).EndInit();
-            this.grpSummary.ResumeLayout(false);
-            this.grpSummary.PerformLayout();
+            this.panelSummary.ResumeLayout(false);
             this.ResumeLayout(false);
-            this.PerformLayout();
+
         }
 
         #endregion
 
-        private System.Windows.Forms.Label lblTitle;
+        private Guna.UI2.WinForms.Guna2Panel    panelTopBar;
+        private System.Windows.Forms.Label      lblTitle;
+        private Guna.UI2.WinForms.Guna2Button   btnClose;
         private System.Windows.Forms.DataGridView dgvReport;
-        private System.Windows.Forms.GroupBox grpSummary;
-        private System.Windows.Forms.Label lblTotalPayments;
-        private System.Windows.Forms.Label lblTotalAmount;
-        private System.Windows.Forms.Button btnRefresh;
-        private System.Windows.Forms.Button btnClose;
+        private Guna.UI2.WinForms.Guna2Panel    panelSummary;
+        private System.Windows.Forms.Label      lblTotalPayments;
+        private System.Windows.Forms.Label      lblTotalAmount;
+        private Guna.UI2.WinForms.Guna2Button   btnRefresh;
     }
 }
