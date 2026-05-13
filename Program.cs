@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Windows.Forms;
 using GYM_Desktop_app.Forms;
-using GymSystem.Database;
+using GYM_Desktop_app.Database;
 
 namespace GYM_Desktop_app
 {

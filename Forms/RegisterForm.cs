@@ -2,7 +2,7 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using GYM_Desktop_app.Models;
-using GymSystem.Database;
+using GYM_Desktop_app.Database;
 
 namespace GYM_Desktop_app.Forms
 {

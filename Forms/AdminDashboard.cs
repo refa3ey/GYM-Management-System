@@ -4,7 +4,7 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using GYM_Desktop_app.Models;
-using GymSystem.Database;
+using GYM_Desktop_app.Database;
 
 namespace GYM_Desktop_app.Forms
 {
@@ -145,6 +145,9 @@ namespace GYM_Desktop_app.Forms
 
         private void btnReports_Click(object sender, EventArgs e)
             => new ReportsForm().ShowDialog();
+
+        private void btnChangePassword_Click(object sender, EventArgs e)
+            => new ChangePasswordForm(_currentUser).ShowDialog();
 
         private void btnLogout_Click(object sender, EventArgs e)
         {

@@ -23,6 +23,7 @@ namespace GYM_Desktop_app.Forms
             this.btnManageTrainers = new Guna.UI2.WinForms.Guna2Button();
             this.btnPayments = new Guna.UI2.WinForms.Guna2Button();
             this.btnReports = new Guna.UI2.WinForms.Guna2Button();
+            this.btnChangePassword = new Guna.UI2.WinForms.Guna2Button();
             this.btnLogout = new Guna.UI2.WinForms.Guna2Button();
             this.panelTopBar = new Guna.UI2.WinForms.Guna2Panel();
             this.lblPageTitle = new System.Windows.Forms.Label();
@@ -61,6 +62,7 @@ namespace GYM_Desktop_app.Forms
             this.panelSidebar.Controls.Add(this.btnManageTrainers);
             this.panelSidebar.Controls.Add(this.btnPayments);
             this.panelSidebar.Controls.Add(this.btnReports);
+            this.panelSidebar.Controls.Add(this.btnChangePassword);
             this.panelSidebar.Controls.Add(this.btnLogout);
             this.panelSidebar.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(60)))), ((int)(((byte)(65)))));
             this.panelSidebar.Location = new System.Drawing.Point(0, 0);
@@ -182,7 +184,23 @@ namespace GYM_Desktop_app.Forms
             this.btnReports.Text = "  Reports";
             this.btnReports.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnReports.Click += new System.EventHandler(this.btnReports_Click);
-            // 
+            //
+            // btnChangePassword
+            //
+            this.btnChangePassword.BorderRadius = 8;
+            this.btnChangePassword.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(60)))), ((int)(((byte)(65)))));
+            this.btnChangePassword.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnChangePassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.btnChangePassword.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
+            this.btnChangePassword.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.btnChangePassword.Location = new System.Drawing.Point(10, 405);
+            this.btnChangePassword.Name = "btnChangePassword";
+            this.btnChangePassword.Size = new System.Drawing.Size(220, 50);
+            this.btnChangePassword.TabIndex = 8;
+            this.btnChangePassword.Text = "  Change Password";
+            this.btnChangePassword.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.btnChangePassword.Click += new System.EventHandler(this.btnChangePassword_Click);
+            //
             // btnLogout
             // 
             this.btnLogout.BorderRadius = 8;
@@ -442,6 +460,7 @@ namespace GYM_Desktop_app.Forms
         private Guna.UI2.WinForms.Guna2Button   btnManageTrainers;
         private Guna.UI2.WinForms.Guna2Button   btnPayments;
         private Guna.UI2.WinForms.Guna2Button   btnReports;
+        private Guna.UI2.WinForms.Guna2Button   btnChangePassword;
         private Guna.UI2.WinForms.Guna2Button   btnLogout;
         private Guna.UI2.WinForms.Guna2Panel    panelTopBar;
         private System.Windows.Forms.Label      lblPageTitle;

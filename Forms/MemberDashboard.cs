@@ -58,6 +58,9 @@ namespace GYM_Desktop_app.Forms
             lblStatus.ForeColor = Color.FromArgb(40, 167, 69);
         }
 
+        private void btnChangePassword_Click(object sender, EventArgs e)
+            => new ChangePasswordForm(_currentUser).ShowDialog();
+
         private void btnViewSchedule_Click(object sender, EventArgs e)
         {
             MessageBox.Show("Your workout schedule:\n\n" +

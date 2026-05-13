@@ -3,7 +3,7 @@ using System.Data;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using GymSystem.Database;
+using GYM_Desktop_app.Database;
 
 namespace GYM_Desktop_app.Forms
 {

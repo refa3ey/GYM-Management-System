@@ -1,11 +1,11 @@
-﻿using GYM_Desktop_app.Models;
+using GYM_Desktop_app.Models;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
 using System.Data;
 using System.Data.SqlClient;
 
-namespace GymSystem.Database
+namespace GYM_Desktop_app.Database
 {
     public static class DatabaseHelper
     {
@@ -15,6 +15,31 @@ namespace GymSystem.Database
         public static SqlConnection GetConnection()
         {
             return new SqlConnection(connectionString);
+        }
+
+        // ===== PASSWORD HASHING =====
+        public static string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
+        }
+
+        public static bool VerifyPassword(string password, string hash)
+        {
+            if (string.IsNullOrEmpty(hash))
+                return false;
+
+            // Only attempt BCrypt verify if it looks like a BCrypt hash
+            if (!hash.StartsWith("$2"))
+                return false;
+
+            try
+            {
+                return BCrypt.Net.BCrypt.Verify(password, hash);
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         // ===== SEED =====
@@ -29,9 +54,10 @@ namespace GymSystem.Database
                     int count = Convert.ToInt32(cmd.ExecuteScalar());
                     if (count == 0)
                     {
-                        string insert = "INSERT INTO Users (Username, Password, Role) VALUES ('admin', 'admin123', 'Admin')";
+                        string insert = "INSERT INTO Users (Username, Password, Role) VALUES ('admin', @pwd, 'Admin')";
                         using (var insertCmd = new SqlCommand(insert, conn))
                         {
+                            insertCmd.Parameters.AddWithValue("@pwd", HashPassword("admin123"));
                             insertCmd.ExecuteNonQuery();
                         }
                     }
@@ -64,30 +90,67 @@ namespace GymSystem.Database
             }
         }
 
+        public static void SeedInitialData()
+        {
+            SeedAdmin();
+            SeedPlans();
+        }
+
         // ===== USER METHODS =====
         public static User ValidateUser(string username, string password)
+        {
+            int userId = 0;
+            string storedPassword = null;
+            string role = null;
+
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = "SELECT * FROM Users WHERE Username=@u";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@u", username);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            userId = Convert.ToInt32(reader["UserID"]);
+                            storedPassword = reader["Password"].ToString();
+                            role = reader["Role"].ToString();
+                        }
+                    }
+                }
+            }
+
+            if (storedPassword == null) return null;
+
+            // BCrypt hash — verified
+            if (VerifyPassword(password, storedPassword))
+                return new User { UserID = userId, Username = username, Role = role };
+
+            // Legacy plain-text password — auto-upgrade to BCrypt on successful login
+            if (storedPassword == password)
+            {
+                UpdateUserPassword(userId, HashPassword(password));
+                return new User { UserID = userId, Username = username, Role = role };
+            }
+
+            return null;
+        }
+
+        public static void UpdateUserPassword(int userId, string newHashedPassword)
         {
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "SELECT * FROM Users WHERE Username=@u AND Password=@p";
+                string sql = "UPDATE Users SET Password=@p WHERE UserID=@id";
                 using (var cmd = new SqlCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@u", username);
-                    cmd.Parameters.AddWithValue("@p", password);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return new User
-                            {
-                                UserID = Convert.ToInt32(reader["UserID"]),
-                                Username = reader["Username"].ToString(),
-                                Role = reader["Role"].ToString()
-                            };
-                    }
+                    cmd.Parameters.AddWithValue("@id", userId);
+                    cmd.Parameters.AddWithValue("@p", newHashedPassword);
+                    cmd.ExecuteNonQuery();
                 }
             }
-            return null;
         }
 
         // ===== MEMBER METHODS =====
@@ -121,6 +184,7 @@ namespace GymSystem.Database
 
         public static void AddMember(Member m, string username, string password)
         {
+            password = HashPassword(password);
             using (var conn = GetConnection())
             {
                 conn.Open();
@@ -155,7 +219,7 @@ namespace GymSystem.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"UPDATE Members SET Name=@name, Phone=@phone, Age=@age, 
+                string sql = @"UPDATE Members SET Name=@name, Phone=@phone, Age=@age,
                               Address=@addr, PlanID=@plan, MembershipExpiry=@expiry WHERE MemberID=@id";
                 using (var cmd = new SqlCommand(sql, conn))
                 {
