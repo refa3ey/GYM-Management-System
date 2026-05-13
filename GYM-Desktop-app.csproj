@@ -87,6 +87,18 @@
     <Compile Include="Database\DatabaseHelper.cs" />
     <Compile Include="Helpers\Theme.cs" />
     <Compile Include="Helpers\ModernMessageBox.cs" />
+    <Compile Include="Forms\AttendanceForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AttendanceForm.Designer.cs">
+      <DependentUpon>AttendanceForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Forms\AttendanceHistoryForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Forms\AttendanceHistoryForm.Designer.cs">
+      <DependentUpon>AttendanceHistoryForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Forms\PaymentForm.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -147,6 +159,7 @@
     <Compile Include="Forms\RegisterForm.Designer.cs">
       <DependentUpon>RegisterForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models\Attendance.cs" />
     <Compile Include="Models\Member.cs" />
     <Compile Include="Models\MembershipPlam.cs" />
     <Compile Include="Models\Payment.cs" />
@@ -154,6 +167,12 @@
     <Compile Include="Models\User.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="Forms\AttendanceForm.resx">
+      <DependentUpon>AttendanceForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Forms\AttendanceHistoryForm.resx">
+      <DependentUpon>AttendanceHistoryForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="Forms\PaymentForm.resx">
       <DependentUpon>PaymentForm.cs</DependentUpon>
     </EmbeddedResource>

@@ -19,6 +19,7 @@ namespace GYM_Desktop_app.Forms
             this.lblBrandSub = new System.Windows.Forms.Label();
             this.panelDivider = new System.Windows.Forms.Panel();
             this.btnManageMembers = new Guna.UI2.WinForms.Guna2Button();
+            this.btnAttendance = new Guna.UI2.WinForms.Guna2Button();
             this.btnManagePlans = new Guna.UI2.WinForms.Guna2Button();
             this.btnManageTrainers = new Guna.UI2.WinForms.Guna2Button();
             this.btnPayments = new Guna.UI2.WinForms.Guna2Button();
@@ -58,6 +59,7 @@ namespace GYM_Desktop_app.Forms
             this.panelSidebar.Controls.Add(this.lblBrandSub);
             this.panelSidebar.Controls.Add(this.panelDivider);
             this.panelSidebar.Controls.Add(this.btnManageMembers);
+            this.panelSidebar.Controls.Add(this.btnAttendance);
             this.panelSidebar.Controls.Add(this.btnManagePlans);
             this.panelSidebar.Controls.Add(this.btnManageTrainers);
             this.panelSidebar.Controls.Add(this.btnPayments);
@@ -120,7 +122,23 @@ namespace GYM_Desktop_app.Forms
             this.btnManageMembers.Text = "  Members";
             this.btnManageMembers.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnManageMembers.Click += new System.EventHandler(this.btnManageMembers_Click);
-            // 
+            //
+            // btnAttendance
+            //
+            this.btnAttendance.BorderRadius = 8;
+            this.btnAttendance.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(60)))), ((int)(((byte)(65)))));
+            this.btnAttendance.Font = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnAttendance.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.btnAttendance.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
+            this.btnAttendance.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
+            this.btnAttendance.Location = new System.Drawing.Point(10, 165);
+            this.btnAttendance.Name = "btnAttendance";
+            this.btnAttendance.Size = new System.Drawing.Size(220, 50);
+            this.btnAttendance.TabIndex = 4;
+            this.btnAttendance.Text = "  Attendance";
+            this.btnAttendance.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
+            this.btnAttendance.Click += new System.EventHandler(this.btnAttendance_Click);
+            //
             // btnManagePlans
             // 
             this.btnManagePlans.BorderRadius = 8;
@@ -129,10 +147,10 @@ namespace GYM_Desktop_app.Forms
             this.btnManagePlans.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnManagePlans.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
             this.btnManagePlans.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.btnManagePlans.Location = new System.Drawing.Point(10, 165);
+            this.btnManagePlans.Location = new System.Drawing.Point(10, 225);
             this.btnManagePlans.Name = "btnManagePlans";
             this.btnManagePlans.Size = new System.Drawing.Size(220, 50);
-            this.btnManagePlans.TabIndex = 4;
+            this.btnManagePlans.TabIndex = 5;
             this.btnManagePlans.Text = "  Plans";
             this.btnManagePlans.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnManagePlans.Click += new System.EventHandler(this.btnManagePlans_Click);
@@ -145,10 +163,10 @@ namespace GYM_Desktop_app.Forms
             this.btnManageTrainers.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnManageTrainers.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
             this.btnManageTrainers.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.btnManageTrainers.Location = new System.Drawing.Point(10, 225);
+            this.btnManageTrainers.Location = new System.Drawing.Point(10, 285);
             this.btnManageTrainers.Name = "btnManageTrainers";
             this.btnManageTrainers.Size = new System.Drawing.Size(220, 50);
-            this.btnManageTrainers.TabIndex = 5;
+            this.btnManageTrainers.TabIndex = 6;
             this.btnManageTrainers.Text = "  Trainers";
             this.btnManageTrainers.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnManageTrainers.Click += new System.EventHandler(this.btnManageTrainers_Click);
@@ -161,10 +179,10 @@ namespace GYM_Desktop_app.Forms
             this.btnPayments.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnPayments.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
             this.btnPayments.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.btnPayments.Location = new System.Drawing.Point(10, 285);
+            this.btnPayments.Location = new System.Drawing.Point(10, 345);
             this.btnPayments.Name = "btnPayments";
             this.btnPayments.Size = new System.Drawing.Size(220, 50);
-            this.btnPayments.TabIndex = 6;
+            this.btnPayments.TabIndex = 7;
             this.btnPayments.Text = "  Payments";
             this.btnPayments.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnPayments.Click += new System.EventHandler(this.btnPayments_Click);
@@ -177,10 +195,10 @@ namespace GYM_Desktop_app.Forms
             this.btnReports.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnReports.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
             this.btnReports.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.btnReports.Location = new System.Drawing.Point(10, 345);
+            this.btnReports.Location = new System.Drawing.Point(10, 405);
             this.btnReports.Name = "btnReports";
             this.btnReports.Size = new System.Drawing.Size(220, 50);
-            this.btnReports.TabIndex = 7;
+            this.btnReports.TabIndex = 8;
             this.btnReports.Text = "  Reports";
             this.btnReports.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnReports.Click += new System.EventHandler(this.btnReports_Click);
@@ -193,10 +211,10 @@ namespace GYM_Desktop_app.Forms
             this.btnChangePassword.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
             this.btnChangePassword.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(0)))), ((int)(((byte)(105)))), ((int)(((byte)(110)))));
             this.btnChangePassword.HoverState.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(255)))), ((int)(((byte)(255)))), ((int)(((byte)(255)))));
-            this.btnChangePassword.Location = new System.Drawing.Point(10, 405);
+            this.btnChangePassword.Location = new System.Drawing.Point(10, 465);
             this.btnChangePassword.Name = "btnChangePassword";
             this.btnChangePassword.Size = new System.Drawing.Size(220, 50);
-            this.btnChangePassword.TabIndex = 8;
+            this.btnChangePassword.TabIndex = 9;
             this.btnChangePassword.Text = "  Change Password";
             this.btnChangePassword.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnChangePassword.Click += new System.EventHandler(this.btnChangePassword_Click);
@@ -456,6 +474,7 @@ namespace GYM_Desktop_app.Forms
         private System.Windows.Forms.Label      lblBrandSub;
         private System.Windows.Forms.Panel      panelDivider;
         private Guna.UI2.WinForms.Guna2Button   btnManageMembers;
+        private Guna.UI2.WinForms.Guna2Button   btnAttendance;
         private Guna.UI2.WinForms.Guna2Button   btnManagePlans;
         private Guna.UI2.WinForms.Guna2Button   btnManageTrainers;
         private Guna.UI2.WinForms.Guna2Button   btnPayments;

@@ -19,6 +19,7 @@ namespace GYM_Desktop_app.Forms
             this.lblBrandSub = new System.Windows.Forms.Label();
             this.btnViewSchedule = new Guna.UI2.WinForms.Guna2Button();
             this.btnChangePassword = new Guna.UI2.WinForms.Guna2Button();
+            this.btnSelfCheckIn = new Guna.UI2.WinForms.Guna2Button();
             this.btnLogout = new Guna.UI2.WinForms.Guna2Button();
             this.panelTopBar = new Guna.UI2.WinForms.Guna2Panel();
             this.lblWelcome = new System.Windows.Forms.Label();
@@ -106,6 +107,20 @@ namespace GYM_Desktop_app.Forms
             this.btnChangePassword.TextAlign = System.Windows.Forms.HorizontalAlignment.Left;
             this.btnChangePassword.Click += new System.EventHandler(this.btnChangePassword_Click);
             //
+            // btnSelfCheckIn
+            //
+            this.btnSelfCheckIn.BorderRadius         = 12;
+            this.btnSelfCheckIn.FillColor            = System.Drawing.Color.FromArgb(((int)(((byte)(40)))), ((int)(((byte)(167)))), ((int)(((byte)(69)))));
+            this.btnSelfCheckIn.Font                 = new System.Drawing.Font("Segoe UI", 16F, System.Drawing.FontStyle.Bold);
+            this.btnSelfCheckIn.ForeColor            = System.Drawing.Color.White;
+            this.btnSelfCheckIn.HoverState.FillColor = System.Drawing.Color.FromArgb(((int)(((byte)(30)))), ((int)(((byte)(130)))), ((int)(((byte)(55)))));
+            this.btnSelfCheckIn.Location             = new System.Drawing.Point(270, 78);
+            this.btnSelfCheckIn.Name                 = "btnSelfCheckIn";
+            this.btnSelfCheckIn.Size                 = new System.Drawing.Size(715, 65);
+            this.btnSelfCheckIn.TabIndex             = 4;
+            this.btnSelfCheckIn.Text                 = "Check In / Check Out";
+            this.btnSelfCheckIn.Click               += new System.EventHandler(this.btnSelfCheckIn_Click);
+            //
             // btnLogout
             // 
             this.btnLogout.BorderRadius = 8;
@@ -166,7 +181,7 @@ namespace GYM_Desktop_app.Forms
             this.panelInfoCard.Controls.Add(this.lblStatusLabel);
             this.panelInfoCard.Controls.Add(this.lblStatus);
             this.panelInfoCard.FillColor = System.Drawing.Color.White;
-            this.panelInfoCard.Location = new System.Drawing.Point(270, 95);
+            this.panelInfoCard.Location = new System.Drawing.Point(270, 153);
             this.panelInfoCard.Name = "panelInfoCard";
             this.panelInfoCard.Size = new System.Drawing.Size(700, 220);
             this.panelInfoCard.TabIndex = 2;
@@ -253,6 +268,7 @@ namespace GYM_Desktop_app.Forms
             this.ClientSize = new System.Drawing.Size(1000, 600);
             this.Controls.Add(this.panelSidebar);
             this.Controls.Add(this.panelTopBar);
+            this.Controls.Add(this.btnSelfCheckIn);
             this.Controls.Add(this.panelInfoCard);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.None;
             this.MaximizeBox = false;
@@ -274,6 +290,7 @@ namespace GYM_Desktop_app.Forms
         private System.Windows.Forms.Label    lblBrandSub;
         private Guna.UI2.WinForms.Guna2Button btnViewSchedule;
         private Guna.UI2.WinForms.Guna2Button btnChangePassword;
+        private Guna.UI2.WinForms.Guna2Button btnSelfCheckIn;
         private Guna.UI2.WinForms.Guna2Button btnLogout;
         private Guna.UI2.WinForms.Guna2Panel  panelTopBar;
         private System.Windows.Forms.Label    lblWelcome;

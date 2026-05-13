@@ -16,6 +16,7 @@ namespace GYM_Desktop_app
             {
                 DatabaseHelper.SeedAdmin();
                 DatabaseHelper.SeedPlans();
+                DatabaseHelper.EnsureAttendanceTable();
             }
             catch (Exception ex)
             {

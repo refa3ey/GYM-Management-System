@@ -134,6 +134,9 @@ namespace GYM_Desktop_app.Forms
         private void btnManageMembers_Click(object sender, EventArgs e)
             => new ManageMembers().ShowDialog();
 
+        private void btnAttendance_Click(object sender, EventArgs e)
+            => new AttendanceForm().ShowDialog();
+
         private void btnManagePlans_Click(object sender, EventArgs e)
             => new ManagePlans().ShowDialog();
 

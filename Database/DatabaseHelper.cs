@@ -399,5 +399,262 @@ namespace GYM_Desktop_app.Database
                 }
             }
         }
+
+        // ===== ATTENDANCE METHODS =====
+        public static void EnsureAttendanceTable()
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name='Attendance')
+                    CREATE TABLE Attendance (
+                        AttendanceID  INT IDENTITY PRIMARY KEY,
+                        MemberID      INT NOT NULL,
+                        CheckInTime   DATETIME NOT NULL,
+                        CheckOutTime  DATETIME NULL,
+                        Notes         NVARCHAR(500) NULL,
+                        FOREIGN KEY (MemberID) REFERENCES Members(MemberID)
+                    )";
+                using (var cmd = new SqlCommand(sql, conn))
+                    cmd.ExecuteNonQuery();
+            }
+        }
+
+        public static bool IsMembershipValid(int memberID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = "SELECT MembershipExpiry FROM Members WHERE MemberID=@id";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", memberID);
+                    var result = cmd.ExecuteScalar();
+                    if (result == null || result == DBNull.Value) return false;
+                    return Convert.ToDateTime(result) > DateTime.Now;
+                }
+            }
+        }
+
+        public static Member FindMember(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            input = input.Trim();
+
+            int memberID = 0;
+            if (input.StartsWith("MBR-", StringComparison.OrdinalIgnoreCase))
+                int.TryParse(input.Substring(4), out memberID);
+            else
+                int.TryParse(input, out memberID);
+
+            if (memberID <= 0) return null;
+
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("SELECT * FROM Members WHERE MemberID=@id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", memberID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            return ReadMember(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static List<Member> FindMembers(string search)
+        {
+            var list = new List<Member>();
+            if (string.IsNullOrWhiteSpace(search)) return list;
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = "SELECT * FROM Members WHERE Name LIKE @s OR Phone LIKE @s";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@s", "%" + search + "%");
+                    using (var reader = cmd.ExecuteReader())
+                        while (reader.Read())
+                            list.Add(ReadMember(reader));
+                }
+            }
+            return list;
+        }
+
+        public static Member GetMemberByUserID(int userID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("SELECT * FROM Members WHERE UserID=@uid", conn))
+                {
+                    cmd.Parameters.AddWithValue("@uid", userID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            return ReadMember(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        private static Member ReadMember(SqlDataReader reader)
+        {
+            return new Member
+            {
+                MemberID         = Convert.ToInt32(reader["MemberID"]),
+                Name             = reader["Name"].ToString(),
+                Phone            = reader["Phone"]?.ToString(),
+                Age              = reader["Age"] != DBNull.Value ? Convert.ToInt32(reader["Age"]) : 0,
+                Address          = reader["Address"]?.ToString(),
+                JoinDate         = reader["JoinDate"] != DBNull.Value ? Convert.ToDateTime(reader["JoinDate"]) : DateTime.Now,
+                PlanID           = reader["PlanID"] != DBNull.Value ? Convert.ToInt32(reader["PlanID"]) : 0,
+                MembershipExpiry = reader["MembershipExpiry"] != DBNull.Value ? Convert.ToDateTime(reader["MembershipExpiry"]) : DateTime.Now
+            };
+        }
+
+        public static int CheckInMember(int memberID, string notes = null)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"INSERT INTO Attendance (MemberID, CheckInTime, Notes)
+                               VALUES (@mid, @time, @notes);
+                               SELECT SCOPE_IDENTITY();";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@mid", memberID);
+                    cmd.Parameters.AddWithValue("@time", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@notes", (object)notes ?? DBNull.Value);
+                    return Convert.ToInt32(cmd.ExecuteScalar());
+                }
+            }
+        }
+
+        public static void CheckOutMember(int attendanceID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = "UPDATE Attendance SET CheckOutTime=@time WHERE AttendanceID=@id";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@time", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@id", attendanceID);
+                    cmd.ExecuteNonQuery();
+                }
+            }
+        }
+
+        public static Attendance GetOpenCheckIn(int memberID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"SELECT a.AttendanceID, a.MemberID, m.Name, a.CheckInTime, a.CheckOutTime, a.Notes
+                               FROM Attendance a JOIN Members m ON a.MemberID=m.MemberID
+                               WHERE a.MemberID=@mid AND a.CheckOutTime IS NULL";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@mid", memberID);
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                            return ReadAttendance(reader);
+                    }
+                }
+            }
+            return null;
+        }
+
+        public static List<Attendance> GetTodayAttendance()
+        {
+            var list = new List<Attendance>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"SELECT a.AttendanceID, a.MemberID, m.Name, a.CheckInTime, a.CheckOutTime, a.Notes
+                               FROM Attendance a JOIN Members m ON a.MemberID=m.MemberID
+                               WHERE CAST(a.CheckInTime AS DATE) = CAST(GETDATE() AS DATE)
+                               ORDER BY a.CheckInTime DESC";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                    while (reader.Read())
+                        list.Add(ReadAttendance(reader));
+            }
+            return list;
+        }
+
+        public static List<Attendance> GetAttendanceByDateRange(DateTime from, DateTime to, int? memberID = null)
+        {
+            var list = new List<Attendance>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"SELECT a.AttendanceID, a.MemberID, m.Name, a.CheckInTime, a.CheckOutTime, a.Notes
+                               FROM Attendance a JOIN Members m ON a.MemberID=m.MemberID
+                               WHERE a.CheckInTime >= @from AND a.CheckInTime < @to";
+                if (memberID.HasValue)
+                    sql += " AND a.MemberID=@mid";
+                sql += " ORDER BY a.CheckInTime DESC";
+
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@from", from.Date);
+                    cmd.Parameters.AddWithValue("@to", to.Date.AddDays(1));
+                    if (memberID.HasValue)
+                        cmd.Parameters.AddWithValue("@mid", memberID.Value);
+                    using (var reader = cmd.ExecuteReader())
+                        while (reader.Read())
+                            list.Add(ReadAttendance(reader));
+                }
+            }
+            return list;
+        }
+
+        public static (int today, int week, int month) GetAttendanceStats()
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT
+                        SUM(CASE WHEN CAST(CheckInTime AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END) AS Today,
+                        SUM(CASE WHEN CheckInTime >= DATEADD(day,-7,GETDATE())  THEN 1 ELSE 0 END) AS Week,
+                        SUM(CASE WHEN CheckInTime >= DATEADD(day,-30,GETDATE()) THEN 1 ELSE 0 END) AS Month
+                    FROM Attendance";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                        return (
+                            reader["Today"] != DBNull.Value ? Convert.ToInt32(reader["Today"]) : 0,
+                            reader["Week"]  != DBNull.Value ? Convert.ToInt32(reader["Week"])  : 0,
+                            reader["Month"] != DBNull.Value ? Convert.ToInt32(reader["Month"]) : 0
+                        );
+                }
+            }
+            return (0, 0, 0);
+        }
+
+        private static Attendance ReadAttendance(SqlDataReader reader)
+        {
+            return new Attendance
+            {
+                AttendanceID = Convert.ToInt32(reader["AttendanceID"]),
+                MemberID     = Convert.ToInt32(reader["MemberID"]),
+                MemberName   = reader["Name"].ToString(),
+                CheckInTime  = Convert.ToDateTime(reader["CheckInTime"]),
+                CheckOutTime = reader["CheckOutTime"] != DBNull.Value
+                                   ? (DateTime?)Convert.ToDateTime(reader["CheckOutTime"])
+                                   : null,
+                Notes        = reader["Notes"] != DBNull.Value ? reader["Notes"].ToString() : null
+            };
+        }
     }
 }

@@ -2,6 +2,7 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using GYM_Desktop_app.Database;
 using GYM_Desktop_app.Models;
 
 namespace GYM_Desktop_app.Forms
@@ -60,6 +61,45 @@ namespace GYM_Desktop_app.Forms
 
         private void btnChangePassword_Click(object sender, EventArgs e)
             => new ChangePasswordForm(_currentUser).ShowDialog();
+
+        private void btnSelfCheckIn_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                var member = DatabaseHelper.GetMemberByUserID(_currentUser.UserID);
+                if (member == null)
+                {
+                    MessageBox.Show("No member account is linked to your user.", "Not Found",
+                        MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                if (!DatabaseHelper.IsMembershipValid(member.MemberID))
+                {
+                    MessageBox.Show("Your membership has expired. Please renew with an administrator.",
+                        "Membership Expired", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                    return;
+                }
+
+                var open = DatabaseHelper.GetOpenCheckIn(member.MemberID);
+                if (open != null)
+                {
+                    DatabaseHelper.CheckOutMember(open.AttendanceID);
+                    MessageBox.Show($"Checked out successfully at {DateTime.Now:HH:mm}.",
+                        "Checked Out", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else
+                {
+                    DatabaseHelper.CheckInMember(member.MemberID);
+                    MessageBox.Show($"Checked in successfully at {DateTime.Now:HH:mm}. Welcome, {member.Name}!",
+                        "Checked In", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Error: " + ex.Message);
+            }
+        }
 
         private void btnViewSchedule_Click(object sender, EventArgs e)
         {
