@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using GYM_Desktop_app.Database;
+using GYM_Desktop_app.Helpers;
 
 namespace GYM_Desktop_app.Forms
 {
@@ -12,8 +13,9 @@ namespace GYM_Desktop_app.Forms
         [DllImport("Gdi32.dll", EntryPoint = "CreateRoundRectRgn")]
         private static extern IntPtr CreateRoundRectRgn(int l, int t, int r, int b, int w, int h);
 
-        private bool _dragging;
-        private Point _dragStart;
+        private bool      _dragging;
+        private Point     _dragStart;
+        private DataTable _reportData;
 
         public ReportsForm()
         {
@@ -71,12 +73,12 @@ namespace GYM_Desktop_app.Forms
         {
             try
             {
-                DataTable dt    = DatabaseHelper.GetPaymentsReport();
-                dgvReport.DataSource = dt;
+                _reportData          = DatabaseHelper.GetPaymentsReport();
+                dgvReport.DataSource = _reportData;
 
-                int totalCount      = dt.Rows.Count;
+                int     totalCount  = _reportData.Rows.Count;
                 decimal totalAmount = 0;
-                foreach (DataRow row in dt.Rows)
+                foreach (DataRow row in _reportData.Rows)
                     totalAmount += Convert.ToDecimal(row["Amount"]);
 
                 lblTotalPayments.Text = $"Total Payments: {totalCount}";
@@ -89,5 +91,27 @@ namespace GYM_Desktop_app.Forms
         }
 
         private void btnRefresh_Click(object sender, EventArgs e) => LoadReport();
+
+        private void btnExportExcel_Click(object sender, EventArgs e)
+        {
+            if (_reportData == null || _reportData.Rows.Count == 0)
+            {
+                MessageBox.Show("No data to export.", "Export", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            string path = ExportDialog.PromptForExcelPath($"Payments_{DateTime.Now:yyyyMMdd}.xlsx");
+            if (path == null) return;
+            try
+            {
+                ExportHelper.ExportPaymentsToExcel(path, _reportData);
+                if (MessageBox.Show("Excel file saved.\n\nOpen it now?", "Export Complete",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    ExportHelper.OpenFile(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Export failed: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
     }
 }

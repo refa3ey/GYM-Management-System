@@ -204,15 +204,15 @@ namespace GYM_Desktop_app.Forms
             // btnExport
             //
             this.btnExport.BorderRadius         = 8;
-            this.btnExport.FillColor            = System.Drawing.Color.FromArgb(120, 120, 120);
+            this.btnExport.FillColor            = System.Drawing.Color.FromArgb(40, 167, 69);
             this.btnExport.Font                 = new System.Drawing.Font("Segoe UI", 9.5F, System.Drawing.FontStyle.Bold);
             this.btnExport.ForeColor            = System.Drawing.Color.White;
-            this.btnExport.HoverState.FillColor = System.Drawing.Color.FromArgb(80, 80, 80);
+            this.btnExport.HoverState.FillColor = System.Drawing.Color.FromArgb(30, 130, 55);
             this.btnExport.Location             = new System.Drawing.Point(955, 12);
             this.btnExport.Name                 = "btnExport";
             this.btnExport.Size                 = new System.Drawing.Size(130, 42);
             this.btnExport.TabIndex             = 1;
-            this.btnExport.Text                 = "Export (Soon)";
+            this.btnExport.Text                 = "Export Excel";
             this.btnExport.Click               += new System.EventHandler(this.btnExport_Click);
             //
             // AttendanceHistoryForm

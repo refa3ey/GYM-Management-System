@@ -2,8 +2,9 @@ using System;
 using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
-using GYM_Desktop_app.Models;
 using GYM_Desktop_app.Database;
+using GYM_Desktop_app.Helpers;
+using GYM_Desktop_app.Models;
 
 namespace GYM_Desktop_app.Forms
 {
@@ -89,12 +90,34 @@ namespace GYM_Desktop_app.Forms
                     Method   = cmbMethod.SelectedItem.ToString()
                 };
 
+                var selectedMember = (Member)cmbMember.SelectedItem;
                 DatabaseHelper.AddPayment(payment);
-                MessageBox.Show("Payment recorded successfully!", "Success",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 numAmount.Value = 0;
                 dtpDate.Value   = DateTime.Now;
+
+                var result = MessageBox.Show("Payment recorded successfully!\n\nPrint a receipt now?",
+                    "Success", MessageBoxButtons.YesNo, MessageBoxIcon.Information);
+                if (result == DialogResult.Yes)
+                {
+                    string pdfPath = ExportDialog.PromptForPDFPath(
+                        $"Receipt_{selectedMember.Name.Replace(" ", "_")}_{payment.Date:yyyyMMdd}.pdf");
+                    if (pdfPath != null)
+                    {
+                        try
+                        {
+                            string planName = "Member";
+                            try { planName = DatabaseHelper.GetPlanNameByID(selectedMember.PlanID); } catch { }
+                            ExportHelper.ExportPaymentReceiptToPDF(pdfPath, payment, selectedMember.Name, planName);
+                            ExportHelper.OpenFile(pdfPath);
+                        }
+                        catch (Exception pdfEx)
+                        {
+                            MessageBox.Show("Could not generate receipt: " + pdfEx.Message,
+                                "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        }
+                    }
+                }
             }
             catch (Exception ex)
             {

@@ -4,6 +4,7 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 using GYM_Desktop_app.Database;
+using GYM_Desktop_app.Helpers;
 using GYM_Desktop_app.Models;
 
 namespace GYM_Desktop_app.Forms
@@ -15,6 +16,7 @@ namespace GYM_Desktop_app.Forms
 
         private bool  _dragging;
         private Point _dragStart;
+        private List<Attendance> _currentList = new List<Attendance>();
 
         public AttendanceHistoryForm()
         {
@@ -84,7 +86,8 @@ namespace GYM_Desktop_app.Forms
                 if (cmbMember.SelectedItem is MemberItem mi && mi.MemberID > 0)
                     memberID = mi.MemberID;
 
-                var list = DatabaseHelper.GetAttendanceByDateRange(dtpFrom.Value, dtpTo.Value, memberID);
+                _currentList = DatabaseHelper.GetAttendanceByDateRange(dtpFrom.Value, dtpTo.Value, memberID);
+                var list = _currentList;
                 dgvHistory.DataSource = list;
 
                 int completed = 0;
@@ -166,8 +169,29 @@ namespace GYM_Desktop_app.Forms
         private void btnApply_Click(object sender, EventArgs e) => ApplyFilter();
 
         private void btnExport_Click(object sender, EventArgs e)
-            => MessageBox.Show("Export feature coming soon.", "Export",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
+        {
+            if (_currentList == null || _currentList.Count == 0)
+            {
+                MessageBox.Show("No records to export. Apply a filter first.", "Export",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            string path = ExportDialog.PromptForExcelPath(
+                $"Attendance_{dtpFrom.Value:yyyyMMdd}_{dtpTo.Value:yyyyMMdd}.xlsx");
+            if (path == null) return;
+            try
+            {
+                ExportHelper.ExportAttendanceToExcel(path, _currentList, dtpFrom.Value, dtpTo.Value);
+                if (MessageBox.Show("Excel file saved.\n\nOpen it now?", "Export Complete",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    ExportHelper.OpenFile(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Export failed: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
 
         private class MemberItem
         {

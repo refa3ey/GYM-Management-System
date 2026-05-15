@@ -20,8 +20,9 @@ namespace GYM_Desktop_app.Forms
             this.panelSearch    = new Guna.UI2.WinForms.Guna2Panel();
             this.txtSearch      = new Guna.UI2.WinForms.Guna2TextBox();
             this.cmbFilter      = new Guna.UI2.WinForms.Guna2ComboBox();
-            this.btnRefresh     = new Guna.UI2.WinForms.Guna2Button();
-            this.lblResultCount = new System.Windows.Forms.Label();
+            this.btnRefresh        = new Guna.UI2.WinForms.Guna2Button();
+            this.btnExportMembers  = new Guna.UI2.WinForms.Guna2Button();
+            this.lblResultCount    = new System.Windows.Forms.Label();
             this.dgvMembers     = new System.Windows.Forms.DataGridView();
             this.panelInputs    = new Guna.UI2.WinForms.Guna2Panel();
             this.lblName        = new System.Windows.Forms.Label();
@@ -94,6 +95,7 @@ namespace GYM_Desktop_app.Forms
             this.panelSearch.Controls.Add(this.txtSearch);
             this.panelSearch.Controls.Add(this.cmbFilter);
             this.panelSearch.Controls.Add(this.btnRefresh);
+            this.panelSearch.Controls.Add(this.btnExportMembers);
             this.panelSearch.Controls.Add(this.lblResultCount);
             this.panelSearch.FillColor = System.Drawing.Color.White;
             this.panelSearch.Location = new System.Drawing.Point(10, 63);
@@ -143,6 +145,20 @@ namespace GYM_Desktop_app.Forms
             this.btnRefresh.TabIndex = 2;
             this.btnRefresh.Text = "↻  Refresh";
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
+            //
+            // btnExportMembers
+            //
+            this.btnExportMembers.BorderRadius         = 8;
+            this.btnExportMembers.FillColor            = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.btnExportMembers.Font                 = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnExportMembers.ForeColor            = System.Drawing.Color.White;
+            this.btnExportMembers.HoverState.FillColor = System.Drawing.Color.FromArgb(30, 130, 55);
+            this.btnExportMembers.Location             = new System.Drawing.Point(762, 12);
+            this.btnExportMembers.Name                 = "btnExportMembers";
+            this.btnExportMembers.Size                 = new System.Drawing.Size(155, 40);
+            this.btnExportMembers.TabIndex             = 3;
+            this.btnExportMembers.Text                 = "Export Excel";
+            this.btnExportMembers.Click               += new System.EventHandler(this.btnExportMembers_Click);
             //
             // lblResultCount
             //
@@ -447,6 +463,7 @@ namespace GYM_Desktop_app.Forms
         private Guna.UI2.WinForms.Guna2TextBox     txtSearch;
         private Guna.UI2.WinForms.Guna2ComboBox    cmbFilter;
         private Guna.UI2.WinForms.Guna2Button      btnRefresh;
+        private Guna.UI2.WinForms.Guna2Button      btnExportMembers;
         private System.Windows.Forms.Label         lblResultCount;
         private System.Windows.Forms.DataGridView  dgvMembers;
         private Guna.UI2.WinForms.Guna2Panel       panelInputs;

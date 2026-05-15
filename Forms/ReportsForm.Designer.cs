@@ -22,6 +22,7 @@ namespace GYM_Desktop_app.Forms
             this.lblTotalPayments = new System.Windows.Forms.Label();
             this.lblTotalAmount = new System.Windows.Forms.Label();
             this.btnRefresh = new Guna.UI2.WinForms.Guna2Button();
+            this.btnExportExcel = new Guna.UI2.WinForms.Guna2Button();
             this.panelTopBar.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dgvReport)).BeginInit();
             this.panelSummary.SuspendLayout();
@@ -89,10 +90,11 @@ namespace GYM_Desktop_app.Forms
             this.panelSummary.Controls.Add(this.lblTotalPayments);
             this.panelSummary.Controls.Add(this.lblTotalAmount);
             this.panelSummary.Controls.Add(this.btnRefresh);
+            this.panelSummary.Controls.Add(this.btnExportExcel);
             this.panelSummary.FillColor = System.Drawing.Color.White;
             this.panelSummary.Location = new System.Drawing.Point(10, 482);
             this.panelSummary.Name = "panelSummary";
-            this.panelSummary.Size = new System.Drawing.Size(900, 70);
+            this.panelSummary.Size = new System.Drawing.Size(900, 130);
             this.panelSummary.TabIndex = 2;
             // 
             // lblTotalPayments
@@ -127,11 +129,25 @@ namespace GYM_Desktop_app.Forms
             this.btnRefresh.TabIndex = 3;
             this.btnRefresh.Text = "Refresh";
             this.btnRefresh.Click += new System.EventHandler(this.btnRefresh_Click);
-            // 
+            //
+            // btnExportExcel
+            //
+            this.btnExportExcel.BorderRadius         = 8;
+            this.btnExportExcel.FillColor            = System.Drawing.Color.FromArgb(40, 167, 69);
+            this.btnExportExcel.Font                 = new System.Drawing.Font("Segoe UI", 10F, System.Drawing.FontStyle.Bold);
+            this.btnExportExcel.ForeColor            = System.Drawing.Color.White;
+            this.btnExportExcel.HoverState.FillColor = System.Drawing.Color.FromArgb(30, 130, 55);
+            this.btnExportExcel.Location             = new System.Drawing.Point(600, 80);
+            this.btnExportExcel.Name                 = "btnExportExcel";
+            this.btnExportExcel.Size                 = new System.Drawing.Size(290, 40);
+            this.btnExportExcel.TabIndex             = 4;
+            this.btnExportExcel.Text                 = "Export to Excel";
+            this.btnExportExcel.Click               += new System.EventHandler(this.btnExportExcel_Click);
+            //
             // ReportsForm
-            // 
+            //
             this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(245)))), ((int)(((byte)(247)))), ((int)(((byte)(250)))));
-            this.ClientSize = new System.Drawing.Size(920, 570);
+            this.ClientSize = new System.Drawing.Size(920, 630);
             this.Controls.Add(this.panelTopBar);
             this.Controls.Add(this.dgvReport);
             this.Controls.Add(this.panelSummary);
@@ -158,5 +174,6 @@ namespace GYM_Desktop_app.Forms
         private System.Windows.Forms.Label      lblTotalPayments;
         private System.Windows.Forms.Label      lblTotalAmount;
         private Guna.UI2.WinForms.Guna2Button   btnRefresh;
+        private Guna.UI2.WinForms.Guna2Button   btnExportExcel;
     }
 }

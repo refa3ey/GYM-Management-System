@@ -689,5 +689,173 @@ namespace GYM_Desktop_app.Database
                 Notes        = reader["Notes"] != DBNull.Value ? reader["Notes"].ToString() : null
             };
         }
+
+        // ===== ANALYTICS METHODS =====
+
+        public static List<(string Month, decimal Total)> GetMonthlyRevenue(int monthsBack = 12)
+        {
+            var result = new List<(string, decimal)>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT YEAR(Date) AS Y, MONTH(Date) AS M, SUM(Amount) AS Total
+                    FROM Payments
+                    WHERE Date >= DATEADD(MONTH, @back,
+                          DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
+                    GROUP BY YEAR(Date), MONTH(Date)
+                    ORDER BY Y ASC, M ASC";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@back", -(monthsBack - 1));
+                    using (var reader = cmd.ExecuteReader())
+                        while (reader.Read())
+                        {
+                            int y = Convert.ToInt32(reader["Y"]);
+                            int m = Convert.ToInt32(reader["M"]);
+                            decimal total = Convert.ToDecimal(reader["Total"]);
+                            result.Add((new DateTime(y, m, 1).ToString("MMM yyyy"), total));
+                        }
+                }
+            }
+            return result;
+        }
+
+        public static List<(string Month, int Count)> GetMemberGrowth(int monthsBack = 12)
+        {
+            var perMonth = new Dictionary<(int Y, int M), int>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT YEAR(JoinDate) AS Y, MONTH(JoinDate) AS M, COUNT(*) AS NewCount
+                    FROM Members
+                    WHERE JoinDate IS NOT NULL
+                    GROUP BY YEAR(JoinDate), MONTH(JoinDate)";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                    while (reader.Read())
+                        perMonth[(Convert.ToInt32(reader["Y"]), Convert.ToInt32(reader["M"]))]
+                            = Convert.ToInt32(reader["NewCount"]);
+            }
+
+            var result = new List<(string, int)>();
+            var now    = DateTime.Now;
+            var start  = new DateTime(now.Year, now.Month, 1).AddMonths(-(monthsBack - 1));
+
+            int cumulative = 0;
+            foreach (var kv in perMonth)
+            {
+                var d = new DateTime(kv.Key.Y, kv.Key.M, 1);
+                if (d < start) cumulative += kv.Value;
+            }
+
+            for (int i = 0; i < monthsBack; i++)
+            {
+                var month = start.AddMonths(i);
+                if (perMonth.TryGetValue((month.Year, month.Month), out int n))
+                    cumulative += n;
+                result.Add((month.ToString("MMM yyyy"), cumulative));
+            }
+            return result;
+        }
+
+        public static List<(string PlanName, int Count)> GetPlanDistribution()
+        {
+            var result = new List<(string, int)>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT p.PlanName, COUNT(m.MemberID) AS MemberCount
+                    FROM MembershipPlans p
+                    LEFT JOIN Members m ON m.PlanID = p.PlanID
+                    GROUP BY p.PlanID, p.PlanName
+                    HAVING COUNT(m.MemberID) > 0
+                    ORDER BY MemberCount DESC";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                    while (reader.Read())
+                        result.Add((reader["PlanName"].ToString(),
+                                    Convert.ToInt32(reader["MemberCount"])));
+            }
+            return result;
+        }
+
+        public static List<(string Method, decimal Total)> GetPaymentMethodBreakdown()
+        {
+            var result = new List<(string, decimal)>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT ISNULL(Method,'Unknown') AS Method, SUM(Amount) AS Total
+                    FROM Payments
+                    GROUP BY Method
+                    ORDER BY Total DESC";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                    while (reader.Read())
+                        result.Add((reader["Method"].ToString(),
+                                    Convert.ToDecimal(reader["Total"])));
+            }
+            return result;
+        }
+
+        public static List<(int Hour, int CheckIns)> GetPeakHours()
+        {
+            var result = new List<(int, int)>();
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    SELECT DATEPART(HOUR, CheckInTime) AS Hr, COUNT(*) AS CheckIns
+                    FROM Attendance
+                    GROUP BY DATEPART(HOUR, CheckInTime)
+                    ORDER BY Hr ASC";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                    while (reader.Read())
+                        result.Add((Convert.ToInt32(reader["Hr"]),
+                                    Convert.ToInt32(reader["CheckIns"])));
+            }
+            return result;
+        }
+
+        public static (int totalMembers, int activeMembers, decimal monthRevenue,
+                        int weekCheckIns, decimal yearRevenue, int newThisMonth)
+            GetDashboardStats()
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"
+                    DECLARE @now        DATETIME = GETDATE();
+                    DECLARE @monthStart DATETIME = DATEFROMPARTS(YEAR(@now), MONTH(@now), 1);
+                    DECLARE @weekAgo    DATETIME = DATEADD(DAY, -7, @now);
+                    DECLARE @yearStart  DATETIME = DATEFROMPARTS(YEAR(@now), 1, 1);
+                    SELECT
+                        (SELECT COUNT(*) FROM Members)                                        AS TotalMembers,
+                        (SELECT COUNT(*) FROM Members WHERE MembershipExpiry >= @now)         AS ActiveMembers,
+                        (SELECT ISNULL(SUM(Amount),0) FROM Payments WHERE Date >= @monthStart) AS MonthRevenue,
+                        (SELECT COUNT(*) FROM Attendance WHERE CheckInTime >= @weekAgo)       AS WeekCheckIns,
+                        (SELECT ISNULL(SUM(Amount),0) FROM Payments WHERE Date >= @yearStart) AS YearRevenue,
+                        (SELECT COUNT(*) FROM Members WHERE JoinDate >= @monthStart)          AS NewThisMonth";
+                using (var cmd = new SqlCommand(sql, conn))
+                using (var reader = cmd.ExecuteReader())
+                {
+                    if (reader.Read())
+                        return (
+                            Convert.ToInt32(reader["TotalMembers"]),
+                            Convert.ToInt32(reader["ActiveMembers"]),
+                            Convert.ToDecimal(reader["MonthRevenue"]),
+                            Convert.ToInt32(reader["WeekCheckIns"]),
+                            Convert.ToDecimal(reader["YearRevenue"]),
+                            Convert.ToInt32(reader["NewThisMonth"])
+                        );
+                }
+            }
+            return (0, 0, 0m, 0, 0m, 0);
+        }
     }
 }

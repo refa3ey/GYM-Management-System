@@ -344,6 +344,31 @@ namespace GYM_Desktop_app.Forms
             new MemberCardPrintForm(_selectedMember).ShowDialog();
         }
 
+        private void btnExportMembers_Click(object sender, EventArgs e)
+        {
+            if (_allMembers == null || _allMembers.Count == 0)
+            {
+                MessageBox.Show("No members to export.", "Export",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+            string path = ExportDialog.PromptForExcelPath(
+                $"Members_{DateTime.Now:yyyyMMdd}.xlsx");
+            if (path == null) return;
+            try
+            {
+                ExportHelper.ExportMembersToExcel(path, _allMembers);
+                if (MessageBox.Show("Excel file saved.\n\nOpen it now?", "Export Complete",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                    ExportHelper.OpenFile(path);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Export failed: " + ex.Message, "Error",
+                    MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
         private bool ValidateInputs()
         {
             if (string.IsNullOrWhiteSpace(txtName.Text))
