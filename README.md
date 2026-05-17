@@ -21,13 +21,14 @@ A full-featured desktop application for managing gym memberships, attendance, pa
 ---
 
 ## Screenshots
+> <img width="892" height="538" alt="image" src="https://github.com/user-attachments/assets/9c416ace-e399-4368-9d93-938baa03985e" />
+ 
+> <img width="1198" height="901" alt="image" src="https://github.com/user-attachments/assets/d61d0d45-2fe1-46c7-b096-1bfc8f13160f" />
 
-> _Add screenshots here after first run_
->
-> `docs/screenshots/login.png`  
-> `docs/screenshots/dashboard.png`  
-> `docs/screenshots/members.png`  
-> `docs/screenshots/analytics.png`
+> <img width="1094" height="672" alt="image" src="https://github.com/user-attachments/assets/1dc9c63f-f835-4636-9c3f-66afa4a02a7b" />
+
+><img width="957" height="682" alt="image" src="https://github.com/user-attachments/assets/b0fe570a-e8ab-42f9-bf11-261b588208a6" />
+
 
 ---
 
