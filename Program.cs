@@ -10,6 +10,9 @@ namespace GYM_Desktop_app
         [STAThread]
         static void Main()
         {
+            // Make |DataDirectory| in connection strings resolve to the exe's folder
+            AppDomain.CurrentDomain.SetData("DataDirectory", AppDomain.CurrentDomain.BaseDirectory);
+
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             try
