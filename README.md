@@ -1,100 +1,117 @@
-<div align="center">
+# GYM PRO — Gym Management System
 
-# 🏋️ GYM Management System
-
-![C#](https://img.shields.io/badge/C%23-239120?style=for-the-badge&logo=c-sharp&logoColor=white)
-![.NET](https://img.shields.io/badge/.NET-512BD4?style=for-the-badge&logo=dotnet&logoColor=white)
-![SQL Server](https://img.shields.io/badge/SQL%20Server-CC2927?style=for-the-badge&logo=microsoft-sql-server&logoColor=white)
-![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91?style=for-the-badge&logo=visual-studio&logoColor=white)
-
-A full-featured desktop application for managing gym operations built with C# Windows Forms and SQL Server.
-
-</div>
+A full-featured desktop application for managing gym memberships, attendance, payments, and analytics, built with WinForms .NET Framework 4.8 and a modern teal UI.
 
 ---
 
-## 📋 Table of Contents
-- [About](#about)
-- [Features](#features)
-- [Technologies](#technologies)
-- [Database Structure](#database-structure)
-- [Getting Started](#getting-started)
-- [Team](#team)
+## Features
+
+| Module | Highlights |
+|--------|-----------|
+| **Authentication** | BCrypt-hashed passwords, admin & member roles, change-password flow |
+| **Member Management** | Add/edit/delete members, real-time search, status filter (Active / Expired / Expiring Soon), row colour coding |
+| **Membership Plans** | Create and manage plans with pricing and duration |
+| **Payments** | Record payments, method breakdown, payment history per member |
+| **Attendance** | Check-in / check-out, attendance history, weekly stats |
+| **QR Code System** | Per-member QR cards, kiosk Check-In Station (fullscreen), print & save member cards |
+| **Analytics Dashboard** | Revenue line chart, member growth area chart, plan distribution doughnut, peak-hours bar chart, 4 live stat cards, 5-min auto-refresh |
+| **Reports & Export** | Export to Excel (EPPlus) and PDF (PdfSharp) |
+| **Trainers** | Manage trainer profiles |
 
 ---
 
-## 📌 About
-The GYM Management System is a desktop application designed to help gym owners and staff manage their daily operations efficiently. It covers member registration, membership plan management, trainer scheduling, payment tracking, attendance monitoring, and report generation.
+## Screenshots
+
+> _Add screenshots here after first run_
+>
+> `docs/screenshots/login.png`  
+> `docs/screenshots/dashboard.png`  
+> `docs/screenshots/members.png`  
+> `docs/screenshots/analytics.png`
 
 ---
 
-## ✨ Features
-
-| Feature | Description |
-|--------|-------------|
-| 🔐 Login System | Secure login for Admins and Members |
-| 👤 Member Management | Add, edit, delete and search members |
-| 💳 Membership Plans | Manage Basic, Standard, Premium and VIP plans |
-| 💰 Payment Tracking | Record and monitor all payment transactions |
-| 📅 Attendance | Track member check-ins and check-outs |
-| 🏃 Trainer Management | Manage trainer profiles and specializations |
-| 📆 Workout Schedule | View and manage class timetables |
-| 📊 Reports | Generate reports for members, payments and attendance |
-
----
-
-## 🛠️ Technologies
-
-- **Language:** C#
-- **Framework:** .NET Framework 4.8
-- **UI:** Windows Forms
-- **Database:** Microsoft SQL Server
-- **IDE:** Microsoft Visual Studio 2022
-
----
-
-## 🗄️ Database Structure
-GymDB
-├── Admins
-├── Members
-├── MembershipPlans
-├── Trainers
-├── Payments
-├── Attendance
-└── WorkoutSchedule
----
-
-## 🚀 Getting Started
+## Installation (End Users)
 
 ### Prerequisites
-- Visual Studio 2022
-- SQL Server / SQL Server Express
-- .NET Framework 4.8
+- Windows 10 / 11 (Windows 7 / 8.1 also supported)
+- [.NET Framework 4.8](https://dotnet.microsoft.com/download/dotnet-framework/net48) _(usually pre-installed on Win 10+)_
+- [SQL Server LocalDB 2019+](https://aka.ms/sqllocaldb) — ships free with [SQL Server Express](https://aka.ms/sqlexpress)
 
-### Installation
+### Steps
+1. Download `GYMPRO-Setup-v1.0.exe`
+2. Right-click → **Run as Administrator**
+3. Follow the installer wizard
+4. Launch **GYM PRO** from the Desktop or Start Menu
 
-1. **Clone the repository**
-```bash
-git clone https://github.com/refa3ey/GYM-Management-System.git
-```
+**Default login:** `admin` / `admin123` — change it immediately after first launch.
 
-2. **Set up the database**
-   - Open SQL Server Management Studio (SSMS)
-   - Create a new database named `GymDB`
-   - Run the SQL script from `/Database/` folder
-
-3. **Update connection string**
-   - Open `Database/DatabaseHelper.cs`
-   - Replace `YOUR_SERVER_NAME` with your SQL Server name
-
-4. **Run the project**
-   - Open `GYM-Desktop-app.sln` in Visual Studio
-   - Press `F5` to run
-
-### Default Admin Login
-Username: admin
-Password: admin123
 ---
 
+## Build Instructions (Developers)
 
-</div>
+### Requirements
+- Visual Studio 2022 (Community or higher)
+- .NET Framework 4.8 SDK
+- NuGet packages (restored automatically on build)
+
+### Steps
+```
+git clone https://github.com/refa3ey/GYM-Management-System.git
+cd GYM-Management-System\GYM-Desktop-app
+```
+
+Open `GYM-Desktop-app.sln` in Visual Studio, or build from the command line:
+
+```
+"C:\Program Files\Microsoft Visual Studio\18\Community\MSBuild\Current\Bin\MSBuild.exe" ^
+    GYM-Desktop-app.csproj /p:Configuration=Release /p:Platform=AnyCPU
+```
+
+Output: `bin\Release\GYM-Desktop-app.exe`
+
+### Building the Installer
+1. Install [Inno Setup 6](https://jrsoftware.org/isinfo.php)
+2. Open `gym-pro-installer.iss` (in the repo root) in Inno Setup Compiler
+3. Press **F9** (Build) or click **Build → Compile**
+4. Installer output: `Output\GYMPRO-Setup-v1.0.exe`
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Language | C# (.NET Framework 4.8) |
+| UI Framework | WinForms + Guna.UI2 2.0.4.7 |
+| Database | SQL Server LocalDB (MDF file, no server install needed) |
+| ORM / Data | ADO.NET (`SqlConnection`, `SqlCommand`) |
+| Password Hashing | BCrypt.Net-Next 4.0.3 |
+| QR Codes | QRCoder 1.4.3 |
+| Charts | System.Windows.Forms.DataVisualization |
+| Excel Export | EPPlus 4.5.3 |
+| PDF Export | PdfSharp 1.50 |
+| Installer | Inno Setup 6 |
+
+---
+
+## Project Structure
+
+```
+GYM-Desktop-app/
+├── Database/         DatabaseHelper.cs — all SQL queries
+├── Forms/            All WinForms screens
+├── Helpers/          Theme, QR, Export, ModernMessageBox
+├── Models/           Member, Payment, Attendance, Plan, Trainer, User
+├── Properties/       AssemblyInfo.cs
+├── Resources/        app.ico
+├── app.manifest      UAC requireAdministrator
+├── App.config        Connection string (uses |DataDirectory|)
+└── GymDB.mdf         SQL Server LocalDB database
+```
+
+---
+
+## License
+
+MIT License — see [LICENSE.txt](LICENSE.txt)
