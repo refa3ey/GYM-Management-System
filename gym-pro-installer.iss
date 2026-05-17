@@ -79,10 +79,11 @@ Name: "desktopicon"; Description: "Create a &desktop shortcut"; GroupDescription
 Source: "{#SourceDir}\{#AppExeName}";        DestDir: "{app}"; Flags: ignoreversion
 Source: "{#SourceDir}\{#AppExeName}.config"; DestDir: "{app}"; Flags: ignoreversion
 
-; ---- Database (template — LocalDB attaches this on first run) ----
-; GymDB_log.ldf is intentionally excluded: LocalDB creates a new log
-; automatically when it first attaches GymDB.mdf.
-Source: "{#SourceDir}\GymDB.mdf"; DestDir: "{app}"; Flags: ignoreversion
+; ---- Database template files ----
+; On first run the app copies these to %LOCALAPPDATA%\GYM PRO\ (writable).
+; Program Files is read-only for LocalDB, so the MDF must live in LOCALAPPDATA.
+Source: "{#SourceDir}\GymDB.mdf";     DestDir: "{app}"; Flags: ignoreversion
+Source: "{#SourceDir}\GymDB_log.ldf"; DestDir: "{app}"; Flags: ignoreversion skipifsourcedoesntexist
 
 ; ---- Third-party DLLs ----
 Source: "{#SourceDir}\BCrypt.Net-Next.dll";                    DestDir: "{app}"; Flags: ignoreversion
