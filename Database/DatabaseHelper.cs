@@ -125,18 +125,42 @@ namespace GYM_Desktop_app.Database
 
             if (storedPassword == null) return null;
 
+            bool authenticated = false;
+
             // BCrypt hash — verified
             if (VerifyPassword(password, storedPassword))
-                return new User { UserID = userId, Username = username, Role = role };
-
+            {
+                authenticated = true;
+            }
             // Legacy plain-text password — auto-upgrade to BCrypt on successful login
-            if (storedPassword == password)
+            else if (storedPassword == password)
             {
                 UpdateUserPassword(userId, HashPassword(password));
-                return new User { UserID = userId, Username = username, Role = role };
+                authenticated = true;
             }
 
-            return null;
+            if (!authenticated) return null;
+
+            // A Member login is only valid while its member record still exists.
+            // Prevents "ghost" logins after a member has been deleted.
+            if (string.Equals(role, "Member", StringComparison.OrdinalIgnoreCase)
+                && !MemberExistsForUser(userId))
+                return null;
+
+            return new User { UserID = userId, Username = username, Role = role };
+        }
+
+        private static bool MemberExistsForUser(int userId)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Members WHERE UserID=@uid", conn))
+                {
+                    cmd.Parameters.AddWithValue("@uid", userId);
+                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                }
+            }
         }
 
         public static void UpdateUserPassword(int userId, string newHashedPassword)
@@ -183,8 +207,31 @@ namespace GYM_Desktop_app.Database
             return list;
         }
 
+        // Returns true if a member with the same name (case-insensitive) and phone already exists.
+        public static bool MemberExists(string name, string phone)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                string sql = @"SELECT COUNT(*) FROM Members
+                               WHERE LTRIM(RTRIM(Name)) = @name
+                                 AND ISNULL(LTRIM(RTRIM(Phone)), '') = @phone";
+                using (var cmd = new SqlCommand(sql, conn))
+                {
+                    cmd.Parameters.AddWithValue("@name", (name ?? "").Trim());
+                    cmd.Parameters.AddWithValue("@phone", (phone ?? "").Trim());
+                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                }
+            }
+        }
+
         public static void AddMember(Member m, string username, string password)
         {
+            // Prevent duplicate members (same name + phone)
+            if (MemberExists(m.Name, m.Phone))
+                throw new InvalidOperationException(
+                    $"A member named \"{m.Name}\" with phone \"{m.Phone}\" already exists.");
+
             password = HashPassword(password);
             using (var conn = GetConnection())
             {
@@ -241,10 +288,53 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("DELETE FROM Members WHERE MemberID=@id", conn))
+                using (var tx = conn.BeginTransaction())
                 {
-                    cmd.Parameters.AddWithValue("@id", memberID);
-                    cmd.ExecuteNonQuery();
+                    try
+                    {
+                        // Capture the member's linked login account (if any)
+                        int userID = 0;
+                        using (var cmd = new SqlCommand("SELECT UserID FROM Members WHERE MemberID=@id", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", memberID);
+                            var r = cmd.ExecuteScalar();
+                            if (r != null && r != DBNull.Value) userID = Convert.ToInt32(r);
+                        }
+
+                        // Remove dependent rows first so FK constraints don't block the delete
+                        using (var cmd = new SqlCommand("DELETE FROM Attendance WHERE MemberID=@id", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", memberID);
+                            cmd.ExecuteNonQuery();
+                        }
+                        using (var cmd = new SqlCommand("DELETE FROM Payments WHERE MemberID=@id", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", memberID);
+                            cmd.ExecuteNonQuery();
+                        }
+                        using (var cmd = new SqlCommand("DELETE FROM Members WHERE MemberID=@id", conn, tx))
+                        {
+                            cmd.Parameters.AddWithValue("@id", memberID);
+                            cmd.ExecuteNonQuery();
+                        }
+
+                        // Finally remove the member's login account
+                        if (userID > 0)
+                        {
+                            using (var cmd = new SqlCommand("DELETE FROM Users WHERE UserID=@uid", conn, tx))
+                            {
+                                cmd.Parameters.AddWithValue("@uid", userID);
+                                cmd.ExecuteNonQuery();
+                            }
+                        }
+
+                        tx.Commit();
+                    }
+                    catch
+                    {
+                        tx.Rollback();
+                        throw;
+                    }
                 }
             }
         }
