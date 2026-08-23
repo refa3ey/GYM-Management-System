@@ -82,15 +82,15 @@ namespace GYM_Desktop_app.Forms
 
             try
             {
+                var selectedMember = (Member)cmbMember.SelectedItem;
                 var payment = new Payment
                 {
                     MemberID = Convert.ToInt32(cmbMember.SelectedValue),
+                    PlanID   = selectedMember.PlanID,
                     Amount   = numAmount.Value,
                     Date     = dtpDate.Value,
                     Method   = cmbMethod.SelectedItem.ToString()
                 };
-
-                var selectedMember = (Member)cmbMember.SelectedItem;
                 DatabaseHelper.AddPayment(payment);
 
                 numAmount.Value = 0;

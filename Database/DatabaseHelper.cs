@@ -59,7 +59,9 @@ namespace GYM_Desktop_app.Database
                             Address TEXT, JoinDate TEXT, PlanID INTEGER, MembershipExpiry TEXT);");
                 Exec(c, @"CREATE TABLE IF NOT EXISTS Payments(
                             PaymentID INTEGER PRIMARY KEY AUTOINCREMENT,
-                            MemberID INTEGER, Amount REAL, Date TEXT, Method TEXT);");
+                            MemberID INTEGER, PlanID INTEGER, Amount REAL, Date TEXT, Method TEXT);");
+                // migrate older DBs that predate the PlanID column
+                try { Exec(c, "ALTER TABLE Payments ADD COLUMN PlanID INTEGER"); } catch { }
                 Exec(c, @"CREATE TABLE IF NOT EXISTS Attendance(
                             AttendanceID INTEGER PRIMARY KEY AUTOINCREMENT,
                             MemberID INTEGER NOT NULL, CheckInTime TEXT NOT NULL,
@@ -505,9 +507,10 @@ namespace GYM_Desktop_app.Database
             {
                 conn.Open();
                 using (var cmd = new SQLiteCommand(
-                    "INSERT INTO Payments (MemberID, Amount, Date, Method) VALUES (@m,@a,@d,@meth)", conn))
+                    "INSERT INTO Payments (MemberID, PlanID, Amount, Date, Method) VALUES (@m,@plan,@a,@d,@meth)", conn))
                 {
                     cmd.Parameters.AddWithValue("@m", p.MemberID);
+                    cmd.Parameters.AddWithValue("@plan", p.PlanID);
                     cmd.Parameters.AddWithValue("@a", p.Amount);
                     cmd.Parameters.AddWithValue("@d", Fmt(p.Date == default(DateTime) ? DateTime.Now : p.Date));
                     cmd.Parameters.AddWithValue("@meth", p.Method ?? "Cash");
@@ -521,8 +524,12 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"SELECT p.PaymentID, m.Name AS MemberName, p.Amount, p.Date, p.Method
-                               FROM Payments p JOIN Members m ON p.MemberID=m.MemberID
+                string sql = @"SELECT p.PaymentID, m.Name AS MemberName,
+                                      COALESCE(pl.PlanName, '-') AS Plan,
+                                      p.Amount, p.Date, p.Method
+                               FROM Payments p
+                               JOIN Members m ON p.MemberID=m.MemberID
+                               LEFT JOIN MembershipPlans pl ON pl.PlanID=p.PlanID
                                ORDER BY p.Date DESC";
                 using (var adapter = new SQLiteDataAdapter(sql, conn))
                 {
