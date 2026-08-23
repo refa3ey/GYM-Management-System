@@ -90,7 +90,7 @@ namespace GYM_Desktop_app.Forms
                 {
                     conn.Open();
                     string sql = "SELECT Password FROM Users WHERE UserID=@id";
-                    using (var cmd = new System.Data.SqlClient.SqlCommand(sql, conn))
+                    using (var cmd = new System.Data.SQLite.SQLiteCommand(sql, conn))
                     {
                         cmd.Parameters.AddWithValue("@id", userId);
                         var result = cmd.ExecuteScalar();

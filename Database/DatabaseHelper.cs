@@ -2,45 +2,83 @@ using GYM_Desktop_app.Helpers;
 using GYM_Desktop_app.Models;
 using System;
 using System.Collections.Generic;
-using System.Configuration;
 using System.Data;
-using System.Data.SqlClient;
+using System.Data.SQLite;
 
 namespace GYM_Desktop_app.Database
 {
+    // ============================================================
+    //  GYM PRO data layer  -  SQLite (embedded, no server needed)
+    // ============================================================
     public static class DatabaseHelper
     {
-        private static string connectionString =
-            ConfigurationManager.ConnectionStrings["GymDBConnection"].ConnectionString;
+        private static string _dbPath;
 
-        public static SqlConnection GetConnection()
+        public static void SetDatabasePath(string path) => _dbPath = path;
+
+        private static string ConnString =>
+            $"Data Source={_dbPath};Version=3;Foreign Keys=True;";
+
+        public static SQLiteConnection GetConnection() => new SQLiteConnection(ConnString);
+
+        private static string Now() => DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+        private static string Fmt(DateTime d) => d.ToString("yyyy-MM-dd HH:mm:ss");
+
+        private static DateTime ParseDate(object o)
         {
-            return new SqlConnection(connectionString);
+            if (o == null || o == DBNull.Value) return DateTime.Now;
+            return DateTime.TryParse(o.ToString(), out var d) ? d : DateTime.Now;
         }
+
+        private static void Exec(SQLiteConnection c, string sql)
+        {
+            using (var cmd = new SQLiteCommand(sql, c)) cmd.ExecuteNonQuery();
+        }
+
+        // ===== SCHEMA + SEED =====
+        public static void EnsureSchema()
+        {
+            if (string.IsNullOrEmpty(_dbPath))
+                throw new InvalidOperationException("Database path not set.");
+
+            using (var c = GetConnection())
+            {
+                c.Open();
+                Exec(c, @"CREATE TABLE IF NOT EXISTS Users(
+                            UserID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Username TEXT UNIQUE, Password TEXT, Role TEXT);");
+                Exec(c, @"CREATE TABLE IF NOT EXISTS MembershipPlans(
+                            PlanID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            PlanName TEXT, DurationMonths INTEGER, Price REAL);");
+                Exec(c, @"CREATE TABLE IF NOT EXISTS Trainers(
+                            TrainerID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            Name TEXT, Specialty TEXT, Phone TEXT);");
+                Exec(c, @"CREATE TABLE IF NOT EXISTS Members(
+                            MemberID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            UserID INTEGER, Name TEXT, Phone TEXT, Age INTEGER,
+                            Address TEXT, JoinDate TEXT, PlanID INTEGER, MembershipExpiry TEXT);");
+                Exec(c, @"CREATE TABLE IF NOT EXISTS Payments(
+                            PaymentID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            MemberID INTEGER, Amount REAL, Date TEXT, Method TEXT);");
+                Exec(c, @"CREATE TABLE IF NOT EXISTS Attendance(
+                            AttendanceID INTEGER PRIMARY KEY AUTOINCREMENT,
+                            MemberID INTEGER NOT NULL, CheckInTime TEXT NOT NULL,
+                            CheckOutTime TEXT NULL, Notes TEXT NULL);");
+            }
+            SeedAdmin();
+            SeedPlans();
+        }
+
+        public static void EnsureAttendanceTable() { /* handled by EnsureSchema */ }
 
         // ===== PASSWORD HASHING =====
-        public static string HashPassword(string password)
-        {
-            return BCrypt.Net.BCrypt.HashPassword(password);
-        }
+        public static string HashPassword(string password) => BCrypt.Net.BCrypt.HashPassword(password);
 
         public static bool VerifyPassword(string password, string hash)
         {
-            if (string.IsNullOrEmpty(hash))
-                return false;
-
-            // Only attempt BCrypt verify if it looks like a BCrypt hash
-            if (!hash.StartsWith("$2"))
-                return false;
-
-            try
-            {
-                return BCrypt.Net.BCrypt.Verify(password, hash);
-            }
-            catch
-            {
-                return false;
-            }
+            if (string.IsNullOrEmpty(hash) || !hash.StartsWith("$2")) return false;
+            try { return BCrypt.Net.BCrypt.Verify(password, hash); }
+            catch { return false; }
         }
 
         // ===== SEED =====
@@ -49,19 +87,13 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string check = "SELECT COUNT(*) FROM Users WHERE Role='Admin'";
-                using (var cmd = new SqlCommand(check, conn))
+                using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM Users WHERE Role='Admin'", conn))
+                    if (Convert.ToInt32(cmd.ExecuteScalar()) > 0) return;
+                using (var ins = new SQLiteCommand(
+                    "INSERT INTO Users (Username, Password, Role) VALUES ('admin', @p, 'Admin')", conn))
                 {
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (count == 0)
-                    {
-                        string insert = "INSERT INTO Users (Username, Password, Role) VALUES ('admin', @pwd, 'Admin')";
-                        using (var insertCmd = new SqlCommand(insert, conn))
-                        {
-                            insertCmd.Parameters.AddWithValue("@pwd", HashPassword("admin123"));
-                            insertCmd.ExecuteNonQuery();
-                        }
-                    }
+                    ins.Parameters.AddWithValue("@p", HashPassword("admin123"));
+                    ins.ExecuteNonQuery();
                 }
             }
         }
@@ -71,80 +103,47 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string check = "SELECT COUNT(*) FROM MembershipPlans";
-                using (var cmd = new SqlCommand(check, conn))
-                {
-                    int count = Convert.ToInt32(cmd.ExecuteScalar());
-                    if (count == 0)
-                    {
-                        string insert = @"INSERT INTO MembershipPlans (PlanName, DurationMonths, Price) VALUES
-                            ('Monthly Plan', 1, 30.00),
-                            ('Quarterly Plan', 3, 80.00),
-                            ('Semi-Annual Plan', 6, 150.00),
-                            ('Annual Plan', 12, 250.00)";
-                        using (var insertCmd = new SqlCommand(insert, conn))
-                        {
-                            insertCmd.ExecuteNonQuery();
-                        }
-                    }
-                }
+                using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM MembershipPlans", conn))
+                    if (Convert.ToInt32(cmd.ExecuteScalar()) > 0) return;
+                string insert = @"INSERT INTO MembershipPlans (PlanName, DurationMonths, Price) VALUES
+                    ('Monthly Plan', 1, 30.00),
+                    ('Quarterly Plan', 3, 80.00),
+                    ('Semi-Annual Plan', 6, 150.00),
+                    ('Annual Plan', 12, 250.00)";
+                using (var cmd = new SQLiteCommand(insert, conn)) cmd.ExecuteNonQuery();
             }
         }
 
-        public static void SeedInitialData()
-        {
-            SeedAdmin();
-            SeedPlans();
-        }
+        public static void SeedInitialData() { SeedAdmin(); SeedPlans(); }
 
-        // ===== USER METHODS =====
+        // ===== USERS / AUTH =====
         public static User ValidateUser(string username, string password)
         {
-            int userId = 0;
-            string storedPassword = null;
-            string role = null;
-
+            int userId = 0; string storedPassword = null; string role = null;
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "SELECT * FROM Users WHERE Username=@u";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand("SELECT * FROM Users WHERE Username=@u", conn))
                 {
                     cmd.Parameters.AddWithValue("@u", username);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
+                    using (var r = cmd.ExecuteReader())
+                        if (r.Read())
                         {
-                            userId = Convert.ToInt32(reader["UserID"]);
-                            storedPassword = reader["Password"].ToString();
-                            role = reader["Role"].ToString();
+                            userId = Convert.ToInt32(r["UserID"]);
+                            storedPassword = r["Password"].ToString();
+                            role = r["Role"].ToString();
                         }
-                    }
                 }
             }
-
             if (storedPassword == null) return null;
 
-            bool authenticated = false;
+            bool ok = false;
+            if (VerifyPassword(password, storedPassword)) ok = true;
+            else if (storedPassword == password) { UpdateUserPassword(userId, HashPassword(password)); ok = true; }
+            if (!ok) return null;
 
-            // BCrypt hash — verified
-            if (VerifyPassword(password, storedPassword))
-            {
-                authenticated = true;
-            }
-            // Legacy plain-text password — auto-upgrade to BCrypt on successful login
-            else if (storedPassword == password)
-            {
-                UpdateUserPassword(userId, HashPassword(password));
-                authenticated = true;
-            }
-
-            if (!authenticated) return null;
-
-            // A Member login is only valid while its member record still exists.
-            // Prevents "ghost" logins after a member has been deleted.
-            if (string.Equals(role, "Member", StringComparison.OrdinalIgnoreCase)
-                && !MemberExistsForUser(userId))
+            // Member login only valid while the member record exists (no ghost logins)
+            if (string.Equals(role, "Member", StringComparison.OrdinalIgnoreCase) && !MemberExistsForUser(userId))
                 return null;
 
             return new User { UserID = userId, Username = username, Role = role };
@@ -155,9 +154,9 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT COUNT(*) FROM Members WHERE UserID=@uid", conn))
+                using (var cmd = new SQLiteCommand("SELECT COUNT(*) FROM Members WHERE UserID=@u", conn))
                 {
-                    cmd.Parameters.AddWithValue("@uid", userId);
+                    cmd.Parameters.AddWithValue("@u", userId);
                     return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
                 }
             }
@@ -168,66 +167,49 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "UPDATE Users SET Password=@p WHERE UserID=@id";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand("UPDATE Users SET Password=@p WHERE UserID=@id", conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", userId);
                     cmd.Parameters.AddWithValue("@p", newHashedPassword);
+                    cmd.Parameters.AddWithValue("@id", userId);
                     cmd.ExecuteNonQuery();
                 }
             }
         }
 
-        // ===== MEMBER METHODS =====
+        public static bool VerifyUserPassword(string username, string password)
+            => ValidateUser(username, password) != null;
+
+        // ===== MEMBERS =====
+        public static bool MemberExists(string name, string phone)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SQLiteCommand(
+                    "SELECT COUNT(*) FROM Members WHERE TRIM(Name)=@n AND IFNULL(TRIM(Phone),'')=@p", conn))
+                {
+                    cmd.Parameters.AddWithValue("@n", (name ?? "").Trim());
+                    cmd.Parameters.AddWithValue("@p", (phone ?? "").Trim());
+                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
+                }
+            }
+        }
+
         public static List<Member> GetAllMembers()
         {
             var list = new List<Member>();
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM Members", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
-                    {
-                        list.Add(new Member
-                        {
-                            MemberID = Convert.ToInt32(reader["MemberID"]),
-                            Name = reader["Name"].ToString(),
-                            Phone = reader["Phone"]?.ToString(),
-                            Age = reader["Age"] != DBNull.Value ? Convert.ToInt32(reader["Age"]) : 0,
-                            Address = reader["Address"]?.ToString(),
-                            JoinDate = reader["JoinDate"] != DBNull.Value ? Convert.ToDateTime(reader["JoinDate"]) : DateTime.Now,
-                            PlanID = reader["PlanID"] != DBNull.Value ? Convert.ToInt32(reader["PlanID"]) : 0,
-                            MembershipExpiry = reader["MembershipExpiry"] != DBNull.Value ? Convert.ToDateTime(reader["MembershipExpiry"]) : DateTime.Now
-                        });
-                    }
-                }
+                using (var cmd = new SQLiteCommand("SELECT * FROM Members", conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read()) list.Add(ReadMember(r));
             }
             return list;
         }
 
-        // Returns true if a member with the same name (case-insensitive) and phone already exists.
-        public static bool MemberExists(string name, string phone)
-        {
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                string sql = @"SELECT COUNT(*) FROM Members
-                               WHERE LTRIM(RTRIM(Name)) = @name
-                                 AND ISNULL(LTRIM(RTRIM(Phone)), '') = @phone";
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@name", (name ?? "").Trim());
-                    cmd.Parameters.AddWithValue("@phone", (phone ?? "").Trim());
-                    return Convert.ToInt32(cmd.ExecuteScalar()) > 0;
-                }
-            }
-        }
-
         public static void AddMember(Member m, string username, string password)
         {
-            // Prevent duplicate members (same name + phone)
             if (MemberExists(m.Name, m.Phone))
                 throw new InvalidOperationException(
                     $"A member named \"{m.Name}\" with phone \"{m.Phone}\" already exists.");
@@ -236,28 +218,31 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                int userID;
-                string addUser = "INSERT INTO Users (Username, Password, Role) VALUES (@u, @p, 'Member'); SELECT SCOPE_IDENTITY();";
-                using (var cmd = new SqlCommand(addUser, conn))
+                using (var tx = conn.BeginTransaction())
                 {
-                    cmd.Parameters.AddWithValue("@u", username);
-                    cmd.Parameters.AddWithValue("@p", password);
-                    userID = Convert.ToInt32(cmd.ExecuteScalar());
-                }
-
-                string addMember = @"INSERT INTO Members (UserID, Name, Phone, Age, Address, JoinDate, PlanID, MembershipExpiry)
-                                     VALUES (@uid, @name, @phone, @age, @addr, @join, @plan, @expiry)";
-                using (var cmd = new SqlCommand(addMember, conn))
-                {
-                    cmd.Parameters.AddWithValue("@uid", userID);
-                    cmd.Parameters.AddWithValue("@name", m.Name);
-                    cmd.Parameters.AddWithValue("@phone", m.Phone ?? "");
-                    cmd.Parameters.AddWithValue("@age", m.Age);
-                    cmd.Parameters.AddWithValue("@addr", m.Address ?? "");
-                    cmd.Parameters.AddWithValue("@join", m.JoinDate);
-                    cmd.Parameters.AddWithValue("@plan", m.PlanID);
-                    cmd.Parameters.AddWithValue("@expiry", m.MembershipExpiry);
-                    cmd.ExecuteNonQuery();
+                    long userID;
+                    using (var cmd = new SQLiteCommand(
+                        "INSERT INTO Users (Username, Password, Role) VALUES (@u,@p,'Member'); SELECT last_insert_rowid();", conn, tx))
+                    {
+                        cmd.Parameters.AddWithValue("@u", username);
+                        cmd.Parameters.AddWithValue("@p", password);
+                        userID = (long)cmd.ExecuteScalar();
+                    }
+                    using (var cmd = new SQLiteCommand(
+                        @"INSERT INTO Members (UserID, Name, Phone, Age, Address, JoinDate, PlanID, MembershipExpiry)
+                          VALUES (@uid,@name,@phone,@age,@addr,@join,@plan,@expiry)", conn, tx))
+                    {
+                        cmd.Parameters.AddWithValue("@uid", userID);
+                        cmd.Parameters.AddWithValue("@name", m.Name);
+                        cmd.Parameters.AddWithValue("@phone", m.Phone ?? "");
+                        cmd.Parameters.AddWithValue("@age", m.Age);
+                        cmd.Parameters.AddWithValue("@addr", m.Address ?? "");
+                        cmd.Parameters.AddWithValue("@join", Fmt(m.JoinDate));
+                        cmd.Parameters.AddWithValue("@plan", m.PlanID);
+                        cmd.Parameters.AddWithValue("@expiry", Fmt(m.MembershipExpiry));
+                        cmd.ExecuteNonQuery();
+                    }
+                    tx.Commit();
                 }
             }
         }
@@ -267,17 +252,17 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"UPDATE Members SET Name=@name, Phone=@phone, Age=@age,
-                              Address=@addr, PlanID=@plan, MembershipExpiry=@expiry WHERE MemberID=@id";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(
+                    @"UPDATE Members SET Name=@name, Phone=@phone, Age=@age, Address=@addr,
+                        PlanID=@plan, MembershipExpiry=@expiry WHERE MemberID=@id", conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", m.MemberID);
                     cmd.Parameters.AddWithValue("@name", m.Name);
                     cmd.Parameters.AddWithValue("@phone", m.Phone ?? "");
                     cmd.Parameters.AddWithValue("@age", m.Age);
                     cmd.Parameters.AddWithValue("@addr", m.Address ?? "");
                     cmd.Parameters.AddWithValue("@plan", m.PlanID);
-                    cmd.Parameters.AddWithValue("@expiry", m.MembershipExpiry);
+                    cmd.Parameters.AddWithValue("@expiry", Fmt(m.MembershipExpiry));
+                    cmd.Parameters.AddWithValue("@id", m.MemberID);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -290,74 +275,121 @@ namespace GYM_Desktop_app.Database
                 conn.Open();
                 using (var tx = conn.BeginTransaction())
                 {
-                    try
+                    int userID = 0;
+                    using (var cmd = new SQLiteCommand("SELECT UserID FROM Members WHERE MemberID=@id", conn, tx))
                     {
-                        // Capture the member's linked login account (if any)
-                        int userID = 0;
-                        using (var cmd = new SqlCommand("SELECT UserID FROM Members WHERE MemberID=@id", conn, tx))
-                        {
-                            cmd.Parameters.AddWithValue("@id", memberID);
-                            var r = cmd.ExecuteScalar();
-                            if (r != null && r != DBNull.Value) userID = Convert.ToInt32(r);
-                        }
-
-                        // Remove dependent rows first so FK constraints don't block the delete
-                        using (var cmd = new SqlCommand("DELETE FROM Attendance WHERE MemberID=@id", conn, tx))
-                        {
-                            cmd.Parameters.AddWithValue("@id", memberID);
-                            cmd.ExecuteNonQuery();
-                        }
-                        using (var cmd = new SqlCommand("DELETE FROM Payments WHERE MemberID=@id", conn, tx))
-                        {
-                            cmd.Parameters.AddWithValue("@id", memberID);
-                            cmd.ExecuteNonQuery();
-                        }
-                        using (var cmd = new SqlCommand("DELETE FROM Members WHERE MemberID=@id", conn, tx))
-                        {
-                            cmd.Parameters.AddWithValue("@id", memberID);
-                            cmd.ExecuteNonQuery();
-                        }
-
-                        // Finally remove the member's login account
-                        if (userID > 0)
-                        {
-                            using (var cmd = new SqlCommand("DELETE FROM Users WHERE UserID=@uid", conn, tx))
-                            {
-                                cmd.Parameters.AddWithValue("@uid", userID);
-                                cmd.ExecuteNonQuery();
-                            }
-                        }
-
-                        tx.Commit();
+                        cmd.Parameters.AddWithValue("@id", memberID);
+                        var r = cmd.ExecuteScalar();
+                        if (r != null && r != DBNull.Value) userID = Convert.ToInt32(r);
                     }
-                    catch
+                    foreach (var sql in new[]
                     {
-                        tx.Rollback();
-                        throw;
-                    }
+                        "DELETE FROM Attendance WHERE MemberID=@id",
+                        "DELETE FROM Payments WHERE MemberID=@id",
+                        "DELETE FROM Members WHERE MemberID=@id"
+                    })
+                        using (var cmd = new SQLiteCommand(sql, conn, tx))
+                        { cmd.Parameters.AddWithValue("@id", memberID); cmd.ExecuteNonQuery(); }
+
+                    if (userID > 0)
+                        using (var cmd = new SQLiteCommand("DELETE FROM Users WHERE UserID=@u", conn, tx))
+                        { cmd.Parameters.AddWithValue("@u", userID); cmd.ExecuteNonQuery(); }
+
+                    tx.Commit();
                 }
             }
         }
 
-        // ===== PLAN METHODS =====
+        public static Member FindMember(string input)
+        {
+            if (string.IsNullOrWhiteSpace(input)) return null;
+            input = QRHelper.ParseQRContent(input.Trim());
+            if (!int.TryParse(input, out int memberID) || memberID <= 0) return null;
+
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SQLiteCommand("SELECT * FROM Members WHERE MemberID=@id", conn))
+                {
+                    cmd.Parameters.AddWithValue("@id", memberID);
+                    using (var r = cmd.ExecuteReader())
+                        if (r.Read()) return ReadMember(r);
+                }
+            }
+            return null;
+        }
+
+        public static List<Member> FindMembers(string search)
+        {
+            var list = new List<Member>();
+            if (string.IsNullOrWhiteSpace(search)) return list;
+
+            string parsed = QRHelper.ParseQRContent(search.Trim());
+            if (int.TryParse(parsed, out int memberID) && memberID > 0)
+            {
+                var m = FindMember(search);
+                if (m != null) list.Add(m);
+                return list;
+            }
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SQLiteCommand(
+                    "SELECT * FROM Members WHERE Name LIKE @s OR Phone LIKE @s", conn))
+                {
+                    cmd.Parameters.AddWithValue("@s", "%" + search + "%");
+                    using (var r = cmd.ExecuteReader())
+                        while (r.Read()) list.Add(ReadMember(r));
+                }
+            }
+            return list;
+        }
+
+        public static Member GetMemberByUserID(int userID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SQLiteCommand("SELECT * FROM Members WHERE UserID=@uid", conn))
+                {
+                    cmd.Parameters.AddWithValue("@uid", userID);
+                    using (var r = cmd.ExecuteReader())
+                        if (r.Read()) return ReadMember(r);
+                }
+            }
+            return null;
+        }
+
+        private static Member ReadMember(IDataRecord r) => new Member
+        {
+            MemberID = Convert.ToInt32(r["MemberID"]),
+            UserID = r["UserID"] != DBNull.Value ? Convert.ToInt32(r["UserID"]) : 0,
+            Name = r["Name"].ToString(),
+            Phone = r["Phone"]?.ToString(),
+            Age = r["Age"] != DBNull.Value ? Convert.ToInt32(r["Age"]) : 0,
+            Address = r["Address"]?.ToString(),
+            JoinDate = ParseDate(r["JoinDate"]),
+            PlanID = r["PlanID"] != DBNull.Value ? Convert.ToInt32(r["PlanID"]) : 0,
+            MembershipExpiry = ParseDate(r["MembershipExpiry"])
+        };
+
+        // ===== PLANS =====
         public static List<MembershipPlan> GetAllPlans()
         {
             var list = new List<MembershipPlan>();
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM MembershipPlans", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                using (var cmd = new SQLiteCommand("SELECT * FROM MembershipPlans", conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read())
                         list.Add(new MembershipPlan
                         {
-                            PlanID = Convert.ToInt32(reader["PlanID"]),
-                            PlanName = reader["PlanName"].ToString(),
-                            DurationMonths = Convert.ToInt32(reader["DurationMonths"]),
-                            Price = Convert.ToDecimal(reader["Price"])
+                            PlanID = Convert.ToInt32(r["PlanID"]),
+                            PlanName = r["PlanName"].ToString(),
+                            DurationMonths = Convert.ToInt32(r["DurationMonths"]),
+                            Price = Convert.ToDecimal(r["Price"])
                         });
-                }
             }
             return list;
         }
@@ -367,7 +399,8 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("INSERT INTO MembershipPlans (PlanName, DurationMonths, Price) VALUES (@n, @d, @p)", conn))
+                using (var cmd = new SQLiteCommand(
+                    "INSERT INTO MembershipPlans (PlanName, DurationMonths, Price) VALUES (@n,@d,@p)", conn))
                 {
                     cmd.Parameters.AddWithValue("@n", p.PlanName);
                     cmd.Parameters.AddWithValue("@d", p.DurationMonths);
@@ -382,13 +415,13 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "UPDATE MembershipPlans SET PlanName=@n, DurationMonths=@d, Price=@p WHERE PlanID=@id";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(
+                    "UPDATE MembershipPlans SET PlanName=@n, DurationMonths=@d, Price=@p WHERE PlanID=@id", conn))
                 {
-                    cmd.Parameters.AddWithValue("@id", p.PlanID);
                     cmd.Parameters.AddWithValue("@n", p.PlanName);
                     cmd.Parameters.AddWithValue("@d", p.DurationMonths);
                     cmd.Parameters.AddWithValue("@p", p.Price);
+                    cmd.Parameters.AddWithValue("@id", p.PlanID);
                     cmd.ExecuteNonQuery();
                 }
             }
@@ -399,33 +432,42 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("DELETE FROM MembershipPlans WHERE PlanID=@id", conn))
+                using (var cmd = new SQLiteCommand("DELETE FROM MembershipPlans WHERE PlanID=@id", conn))
+                { cmd.Parameters.AddWithValue("@id", planID); cmd.ExecuteNonQuery(); }
+            }
+        }
+
+        public static string GetPlanNameByID(int planID)
+        {
+            using (var conn = GetConnection())
+            {
+                conn.Open();
+                using (var cmd = new SQLiteCommand("SELECT PlanName FROM MembershipPlans WHERE PlanID=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("@id", planID);
-                    cmd.ExecuteNonQuery();
+                    var result = cmd.ExecuteScalar();
+                    return result != null && result != DBNull.Value ? result.ToString() : "Member";
                 }
             }
         }
 
-        // ===== TRAINER METHODS =====
+        // ===== TRAINERS =====
         public static List<Trainer> GetAllTrainers()
         {
             var list = new List<Trainer>();
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM Trainers", conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    while (reader.Read())
+                using (var cmd = new SQLiteCommand("SELECT * FROM Trainers", conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read())
                         list.Add(new Trainer
                         {
-                            TrainerID = Convert.ToInt32(reader["TrainerID"]),
-                            Name = reader["Name"].ToString(),
-                            Specialty = reader["Specialty"]?.ToString(),
-                            Phone = reader["Phone"]?.ToString()
+                            TrainerID = Convert.ToInt32(r["TrainerID"]),
+                            Name = r["Name"].ToString(),
+                            Specialty = r["Specialty"]?.ToString(),
+                            Phone = r["Phone"]?.ToString()
                         });
-                }
             }
             return list;
         }
@@ -435,7 +477,8 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("INSERT INTO Trainers (Name, Specialty, Phone) VALUES (@n, @s, @p)", conn))
+                using (var cmd = new SQLiteCommand(
+                    "INSERT INTO Trainers (Name, Specialty, Phone) VALUES (@n,@s,@p)", conn))
                 {
                     cmd.Parameters.AddWithValue("@n", t.Name);
                     cmd.Parameters.AddWithValue("@s", t.Specialty ?? "");
@@ -450,25 +493,23 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("DELETE FROM Trainers WHERE TrainerID=@id", conn))
-                {
-                    cmd.Parameters.AddWithValue("@id", trainerID);
-                    cmd.ExecuteNonQuery();
-                }
+                using (var cmd = new SQLiteCommand("DELETE FROM Trainers WHERE TrainerID=@id", conn))
+                { cmd.Parameters.AddWithValue("@id", trainerID); cmd.ExecuteNonQuery(); }
             }
         }
 
-        // ===== PAYMENT METHODS =====
+        // ===== PAYMENTS =====
         public static void AddPayment(Payment p)
         {
             using (var conn = GetConnection())
             {
                 conn.Open();
-                using (var cmd = new SqlCommand("INSERT INTO Payments (MemberID, Amount, Date, Method) VALUES (@m, @a, @d, @meth)", conn))
+                using (var cmd = new SQLiteCommand(
+                    "INSERT INTO Payments (MemberID, Amount, Date, Method) VALUES (@m,@a,@d,@meth)", conn))
                 {
                     cmd.Parameters.AddWithValue("@m", p.MemberID);
                     cmd.Parameters.AddWithValue("@a", p.Amount);
-                    cmd.Parameters.AddWithValue("@d", p.Date);
+                    cmd.Parameters.AddWithValue("@d", Fmt(p.Date == default(DateTime) ? DateTime.Now : p.Date));
                     cmd.Parameters.AddWithValue("@meth", p.Method ?? "Cash");
                     cmd.ExecuteNonQuery();
                 }
@@ -481,8 +522,9 @@ namespace GYM_Desktop_app.Database
             {
                 conn.Open();
                 string sql = @"SELECT p.PaymentID, m.Name AS MemberName, p.Amount, p.Date, p.Method
-                               FROM Payments p JOIN Members m ON p.MemberID = m.MemberID";
-                using (var adapter = new SqlDataAdapter(sql, conn))
+                               FROM Payments p JOIN Members m ON p.MemberID=m.MemberID
+                               ORDER BY p.Date DESC";
+                using (var adapter = new SQLiteDataAdapter(sql, conn))
                 {
                     var dt = new DataTable();
                     adapter.Fill(dt);
@@ -491,105 +533,18 @@ namespace GYM_Desktop_app.Database
             }
         }
 
-        // ===== ATTENDANCE METHODS =====
-        public static void EnsureAttendanceTable()
-        {
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                string sql = @"
-                    IF NOT EXISTS (SELECT * FROM sys.tables WHERE name='Attendance')
-                    CREATE TABLE Attendance (
-                        AttendanceID  INT IDENTITY PRIMARY KEY,
-                        MemberID      INT NOT NULL,
-                        CheckInTime   DATETIME NOT NULL,
-                        CheckOutTime  DATETIME NULL,
-                        Notes         NVARCHAR(500) NULL,
-                        FOREIGN KEY (MemberID) REFERENCES Members(MemberID)
-                    )";
-                using (var cmd = new SqlCommand(sql, conn))
-                    cmd.ExecuteNonQuery();
-            }
-        }
-
+        // ===== ATTENDANCE =====
         public static bool IsMembershipValid(int memberID)
         {
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "SELECT MembershipExpiry FROM Members WHERE MemberID=@id";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand("SELECT MembershipExpiry FROM Members WHERE MemberID=@id", conn))
                 {
                     cmd.Parameters.AddWithValue("@id", memberID);
                     var result = cmd.ExecuteScalar();
                     if (result == null || result == DBNull.Value) return false;
-                    return Convert.ToDateTime(result) > DateTime.Now;
-                }
-            }
-        }
-
-        public static Member FindMember(string input)
-        {
-            if (string.IsNullOrWhiteSpace(input)) return null;
-            input = QRHelper.ParseQRContent(input.Trim());
-
-            if (!int.TryParse(input, out int memberID) || memberID <= 0) return null;
-
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM Members WHERE MemberID=@id", conn))
-                {
-                    cmd.Parameters.AddWithValue("@id", memberID);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return ReadMember(reader);
-                    }
-                }
-            }
-            return null;
-        }
-
-        public static List<Member> FindMembers(string search)
-        {
-            var list = new List<Member>();
-            if (string.IsNullOrWhiteSpace(search)) return list;
-
-            // QR code / numeric ID lookup
-            string parsed = QRHelper.ParseQRContent(search.Trim());
-            if (int.TryParse(parsed, out int memberID) && memberID > 0)
-            {
-                var m = FindMember(search);
-                if (m != null) list.Add(m);
-                return list;
-            }
-
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                string sql = "SELECT * FROM Members WHERE Name LIKE @s OR Phone LIKE @s";
-                using (var cmd = new SqlCommand(sql, conn))
-                {
-                    cmd.Parameters.AddWithValue("@s", "%" + search + "%");
-                    using (var reader = cmd.ExecuteReader())
-                        while (reader.Read())
-                            list.Add(ReadMember(reader));
-                }
-            }
-            return list;
-        }
-
-        public static string GetPlanNameByID(int planID)
-        {
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                using (var cmd = new SqlCommand("SELECT PlanName FROM MembershipPlans WHERE PlanID=@id", conn))
-                {
-                    cmd.Parameters.AddWithValue("@id", planID);
-                    var result = cmd.ExecuteScalar();
-                    return result != null ? result.ToString() : "Member";
+                    return ParseDate(result) > DateTime.Now;
                 }
             }
         }
@@ -599,46 +554,10 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "SELECT COUNT(*) FROM Attendance WHERE CAST(CheckInTime AS DATE) = CAST(GETDATE() AS DATE)";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(
+                    "SELECT COUNT(*) FROM Attendance WHERE date(CheckInTime)=date('now','localtime')", conn))
                     return Convert.ToInt32(cmd.ExecuteScalar());
             }
-        }
-
-        public static bool VerifyUserPassword(string username, string password)
-            => ValidateUser(username, password) != null;
-
-        public static Member GetMemberByUserID(int userID)
-        {
-            using (var conn = GetConnection())
-            {
-                conn.Open();
-                using (var cmd = new SqlCommand("SELECT * FROM Members WHERE UserID=@uid", conn))
-                {
-                    cmd.Parameters.AddWithValue("@uid", userID);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return ReadMember(reader);
-                    }
-                }
-            }
-            return null;
-        }
-
-        private static Member ReadMember(SqlDataReader reader)
-        {
-            return new Member
-            {
-                MemberID         = Convert.ToInt32(reader["MemberID"]),
-                Name             = reader["Name"].ToString(),
-                Phone            = reader["Phone"]?.ToString(),
-                Age              = reader["Age"] != DBNull.Value ? Convert.ToInt32(reader["Age"]) : 0,
-                Address          = reader["Address"]?.ToString(),
-                JoinDate         = reader["JoinDate"] != DBNull.Value ? Convert.ToDateTime(reader["JoinDate"]) : DateTime.Now,
-                PlanID           = reader["PlanID"] != DBNull.Value ? Convert.ToInt32(reader["PlanID"]) : 0,
-                MembershipExpiry = reader["MembershipExpiry"] != DBNull.Value ? Convert.ToDateTime(reader["MembershipExpiry"]) : DateTime.Now
-            };
         }
 
         public static int CheckInMember(int memberID, string notes = null)
@@ -646,13 +565,11 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"INSERT INTO Attendance (MemberID, CheckInTime, Notes)
-                               VALUES (@mid, @time, @notes);
-                               SELECT SCOPE_IDENTITY();";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(
+                    "INSERT INTO Attendance (MemberID, CheckInTime, Notes) VALUES (@mid,@time,@notes); SELECT last_insert_rowid();", conn))
                 {
                     cmd.Parameters.AddWithValue("@mid", memberID);
-                    cmd.Parameters.AddWithValue("@time", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@time", Now());
                     cmd.Parameters.AddWithValue("@notes", (object)notes ?? DBNull.Value);
                     return Convert.ToInt32(cmd.ExecuteScalar());
                 }
@@ -664,10 +581,9 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = "UPDATE Attendance SET CheckOutTime=@time WHERE AttendanceID=@id";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand("UPDATE Attendance SET CheckOutTime=@time WHERE AttendanceID=@id", conn))
                 {
-                    cmd.Parameters.AddWithValue("@time", DateTime.Now);
+                    cmd.Parameters.AddWithValue("@time", Now());
                     cmd.Parameters.AddWithValue("@id", attendanceID);
                     cmd.ExecuteNonQuery();
                 }
@@ -682,14 +598,11 @@ namespace GYM_Desktop_app.Database
                 string sql = @"SELECT a.AttendanceID, a.MemberID, m.Name, a.CheckInTime, a.CheckOutTime, a.Notes
                                FROM Attendance a JOIN Members m ON a.MemberID=m.MemberID
                                WHERE a.MemberID=@mid AND a.CheckOutTime IS NULL";
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
                     cmd.Parameters.AddWithValue("@mid", memberID);
-                    using (var reader = cmd.ExecuteReader())
-                    {
-                        if (reader.Read())
-                            return ReadAttendance(reader);
-                    }
+                    using (var r = cmd.ExecuteReader())
+                        if (r.Read()) return ReadAttendance(r);
                 }
             }
             return null;
@@ -703,12 +616,11 @@ namespace GYM_Desktop_app.Database
                 conn.Open();
                 string sql = @"SELECT a.AttendanceID, a.MemberID, m.Name, a.CheckInTime, a.CheckOutTime, a.Notes
                                FROM Attendance a JOIN Members m ON a.MemberID=m.MemberID
-                               WHERE CAST(a.CheckInTime AS DATE) = CAST(GETDATE() AS DATE)
+                               WHERE date(a.CheckInTime)=date('now','localtime')
                                ORDER BY a.CheckInTime DESC";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        list.Add(ReadAttendance(reader));
+                using (var cmd = new SQLiteCommand(sql, conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read()) list.Add(ReadAttendance(r));
             }
             return list;
         }
@@ -722,19 +634,15 @@ namespace GYM_Desktop_app.Database
                 string sql = @"SELECT a.AttendanceID, a.MemberID, m.Name, a.CheckInTime, a.CheckOutTime, a.Notes
                                FROM Attendance a JOIN Members m ON a.MemberID=m.MemberID
                                WHERE a.CheckInTime >= @from AND a.CheckInTime < @to";
-                if (memberID.HasValue)
-                    sql += " AND a.MemberID=@mid";
+                if (memberID.HasValue) sql += " AND a.MemberID=@mid";
                 sql += " ORDER BY a.CheckInTime DESC";
-
-                using (var cmd = new SqlCommand(sql, conn))
+                using (var cmd = new SQLiteCommand(sql, conn))
                 {
-                    cmd.Parameters.AddWithValue("@from", from.Date);
-                    cmd.Parameters.AddWithValue("@to", to.Date.AddDays(1));
-                    if (memberID.HasValue)
-                        cmd.Parameters.AddWithValue("@mid", memberID.Value);
-                    using (var reader = cmd.ExecuteReader())
-                        while (reader.Read())
-                            list.Add(ReadAttendance(reader));
+                    cmd.Parameters.AddWithValue("@from", Fmt(from.Date));
+                    cmd.Parameters.AddWithValue("@to", Fmt(to.Date.AddDays(1)));
+                    if (memberID.HasValue) cmd.Parameters.AddWithValue("@mid", memberID.Value);
+                    using (var r = cmd.ExecuteReader())
+                        while (r.Read()) list.Add(ReadAttendance(r));
                 }
             }
             return list;
@@ -745,66 +653,50 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    SELECT
-                        SUM(CASE WHEN CAST(CheckInTime AS DATE) = CAST(GETDATE() AS DATE) THEN 1 ELSE 0 END) AS Today,
-                        SUM(CASE WHEN CheckInTime >= DATEADD(day,-7,GETDATE())  THEN 1 ELSE 0 END) AS Week,
-                        SUM(CASE WHEN CheckInTime >= DATEADD(day,-30,GETDATE()) THEN 1 ELSE 0 END) AS Month
+                string sql = @"SELECT
+                    SUM(CASE WHEN date(CheckInTime)=date('now','localtime') THEN 1 ELSE 0 END) AS Today,
+                    SUM(CASE WHEN CheckInTime >= datetime('now','localtime','-7 days')  THEN 1 ELSE 0 END) AS Week,
+                    SUM(CASE WHEN CheckInTime >= datetime('now','localtime','-30 days') THEN 1 ELSE 0 END) AS Month
                     FROM Attendance";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (reader.Read())
+                using (var cmd = new SQLiteCommand(sql, conn))
+                using (var r = cmd.ExecuteReader())
+                    if (r.Read())
                         return (
-                            reader["Today"] != DBNull.Value ? Convert.ToInt32(reader["Today"]) : 0,
-                            reader["Week"]  != DBNull.Value ? Convert.ToInt32(reader["Week"])  : 0,
-                            reader["Month"] != DBNull.Value ? Convert.ToInt32(reader["Month"]) : 0
-                        );
-                }
+                            r["Today"] != DBNull.Value ? Convert.ToInt32(r["Today"]) : 0,
+                            r["Week"] != DBNull.Value ? Convert.ToInt32(r["Week"]) : 0,
+                            r["Month"] != DBNull.Value ? Convert.ToInt32(r["Month"]) : 0);
             }
             return (0, 0, 0);
         }
 
-        private static Attendance ReadAttendance(SqlDataReader reader)
+        private static Attendance ReadAttendance(IDataRecord r) => new Attendance
         {
-            return new Attendance
-            {
-                AttendanceID = Convert.ToInt32(reader["AttendanceID"]),
-                MemberID     = Convert.ToInt32(reader["MemberID"]),
-                MemberName   = reader["Name"].ToString(),
-                CheckInTime  = Convert.ToDateTime(reader["CheckInTime"]),
-                CheckOutTime = reader["CheckOutTime"] != DBNull.Value
-                                   ? (DateTime?)Convert.ToDateTime(reader["CheckOutTime"])
-                                   : null,
-                Notes        = reader["Notes"] != DBNull.Value ? reader["Notes"].ToString() : null
-            };
-        }
+            AttendanceID = Convert.ToInt32(r["AttendanceID"]),
+            MemberID = Convert.ToInt32(r["MemberID"]),
+            MemberName = r["Name"].ToString(),
+            CheckInTime = ParseDate(r["CheckInTime"]),
+            CheckOutTime = r["CheckOutTime"] != DBNull.Value ? (DateTime?)ParseDate(r["CheckOutTime"]) : null,
+            Notes = r["Notes"] != DBNull.Value ? r["Notes"].ToString() : null
+        };
 
-        // ===== ANALYTICS METHODS =====
-
+        // ===== ANALYTICS =====
         public static List<(string Month, decimal Total)> GetMonthlyRevenue(int monthsBack = 12)
         {
             var result = new List<(string, decimal)>();
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    SELECT YEAR(Date) AS Y, MONTH(Date) AS M, SUM(Amount) AS Total
-                    FROM Payments
-                    WHERE Date >= DATEADD(MONTH, @back,
-                          DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-                    GROUP BY YEAR(Date), MONTH(Date)
-                    ORDER BY Y ASC, M ASC";
-                using (var cmd = new SqlCommand(sql, conn))
+                string start = Fmt(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-(monthsBack - 1)));
+                using (var cmd = new SQLiteCommand(
+                    "SELECT strftime('%Y-%m', Date) AS M, SUM(Amount) AS Total FROM Payments WHERE Date>=@s GROUP BY M ORDER BY M", conn))
                 {
-                    cmd.Parameters.AddWithValue("@back", -(monthsBack - 1));
-                    using (var reader = cmd.ExecuteReader())
-                        while (reader.Read())
+                    cmd.Parameters.AddWithValue("@s", start);
+                    using (var r = cmd.ExecuteReader())
+                        while (r.Read())
                         {
-                            int y = Convert.ToInt32(reader["Y"]);
-                            int m = Convert.ToInt32(reader["M"]);
-                            decimal total = Convert.ToDecimal(reader["Total"]);
-                            result.Add((new DateTime(y, m, 1).ToString("MMM yyyy"), total));
+                            var ym = r["M"].ToString();
+                            var label = DateTime.TryParse(ym + "-01", out var d) ? d.ToString("MMM yyyy") : ym;
+                            result.Add((label, Convert.ToDecimal(r["Total"])));
                         }
                 }
             }
@@ -813,38 +705,24 @@ namespace GYM_Desktop_app.Database
 
         public static List<(string Month, int Count)> GetMemberGrowth(int monthsBack = 12)
         {
-            var perMonth = new Dictionary<(int Y, int M), int>();
+            var perMonth = new Dictionary<string, int>();
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    SELECT YEAR(JoinDate) AS Y, MONTH(JoinDate) AS M, COUNT(*) AS NewCount
-                    FROM Members
-                    WHERE JoinDate IS NOT NULL
-                    GROUP BY YEAR(JoinDate), MONTH(JoinDate)";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        perMonth[(Convert.ToInt32(reader["Y"]), Convert.ToInt32(reader["M"]))]
-                            = Convert.ToInt32(reader["NewCount"]);
+                using (var cmd = new SQLiteCommand(
+                    "SELECT strftime('%Y-%m', JoinDate) AS M, COUNT(*) AS C FROM Members WHERE JoinDate IS NOT NULL GROUP BY M", conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read()) perMonth[r["M"].ToString()] = Convert.ToInt32(r["C"]);
             }
-
             var result = new List<(string, int)>();
-            var now    = DateTime.Now;
-            var start  = new DateTime(now.Year, now.Month, 1).AddMonths(-(monthsBack - 1));
-
+            var start = new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1).AddMonths(-(monthsBack - 1));
             int cumulative = 0;
             foreach (var kv in perMonth)
-            {
-                var d = new DateTime(kv.Key.Y, kv.Key.M, 1);
-                if (d < start) cumulative += kv.Value;
-            }
-
+                if (DateTime.TryParse(kv.Key + "-01", out var d) && d < start) cumulative += kv.Value;
             for (int i = 0; i < monthsBack; i++)
             {
                 var month = start.AddMonths(i);
-                if (perMonth.TryGetValue((month.Year, month.Month), out int n))
-                    cumulative += n;
+                if (perMonth.TryGetValue(month.ToString("yyyy-MM"), out int n)) cumulative += n;
                 result.Add((month.ToString("MMM yyyy"), cumulative));
             }
             return result;
@@ -856,18 +734,12 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    SELECT p.PlanName, COUNT(m.MemberID) AS MemberCount
-                    FROM MembershipPlans p
-                    LEFT JOIN Members m ON m.PlanID = p.PlanID
-                    GROUP BY p.PlanID, p.PlanName
-                    HAVING COUNT(m.MemberID) > 0
-                    ORDER BY MemberCount DESC";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        result.Add((reader["PlanName"].ToString(),
-                                    Convert.ToInt32(reader["MemberCount"])));
+                string sql = @"SELECT p.PlanName, COUNT(m.MemberID) AS C
+                               FROM MembershipPlans p LEFT JOIN Members m ON m.PlanID=p.PlanID
+                               GROUP BY p.PlanID HAVING COUNT(m.MemberID)>0 ORDER BY C DESC";
+                using (var cmd = new SQLiteCommand(sql, conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read()) result.Add((r["PlanName"].ToString(), Convert.ToInt32(r["C"])));
             }
             return result;
         }
@@ -878,16 +750,10 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    SELECT ISNULL(Method,'Unknown') AS Method, SUM(Amount) AS Total
-                    FROM Payments
-                    GROUP BY Method
-                    ORDER BY Total DESC";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        result.Add((reader["Method"].ToString(),
-                                    Convert.ToDecimal(reader["Total"])));
+                using (var cmd = new SQLiteCommand(
+                    "SELECT IFNULL(Method,'Unknown') AS Method, SUM(Amount) AS Total FROM Payments GROUP BY Method ORDER BY Total DESC", conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read()) result.Add((r["Method"].ToString(), Convert.ToDecimal(r["Total"])));
             }
             return result;
         }
@@ -898,54 +764,54 @@ namespace GYM_Desktop_app.Database
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    SELECT DATEPART(HOUR, CheckInTime) AS Hr, COUNT(*) AS CheckIns
-                    FROM Attendance
-                    GROUP BY DATEPART(HOUR, CheckInTime)
-                    ORDER BY Hr ASC";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                    while (reader.Read())
-                        result.Add((Convert.ToInt32(reader["Hr"]),
-                                    Convert.ToInt32(reader["CheckIns"])));
+                using (var cmd = new SQLiteCommand(
+                    "SELECT CAST(strftime('%H', CheckInTime) AS INTEGER) AS Hr, COUNT(*) AS C FROM Attendance GROUP BY Hr ORDER BY Hr", conn))
+                using (var r = cmd.ExecuteReader())
+                    while (r.Read()) result.Add((Convert.ToInt32(r["Hr"]), Convert.ToInt32(r["C"])));
             }
             return result;
         }
 
         public static (int totalMembers, int activeMembers, decimal monthRevenue,
-                        int weekCheckIns, decimal yearRevenue, int newThisMonth)
-            GetDashboardStats()
+                        int weekCheckIns, decimal yearRevenue, int newThisMonth) GetDashboardStats()
         {
             using (var conn = GetConnection())
             {
                 conn.Open();
-                string sql = @"
-                    DECLARE @now        DATETIME = GETDATE();
-                    DECLARE @monthStart DATETIME = DATEFROMPARTS(YEAR(@now), MONTH(@now), 1);
-                    DECLARE @weekAgo    DATETIME = DATEADD(DAY, -7, @now);
-                    DECLARE @yearStart  DATETIME = DATEFROMPARTS(YEAR(@now), 1, 1);
-                    SELECT
-                        (SELECT COUNT(*) FROM Members)                                        AS TotalMembers,
-                        (SELECT COUNT(*) FROM Members WHERE MembershipExpiry >= @now)         AS ActiveMembers,
-                        (SELECT ISNULL(SUM(Amount),0) FROM Payments WHERE Date >= @monthStart) AS MonthRevenue,
-                        (SELECT COUNT(*) FROM Attendance WHERE CheckInTime >= @weekAgo)       AS WeekCheckIns,
-                        (SELECT ISNULL(SUM(Amount),0) FROM Payments WHERE Date >= @yearStart) AS YearRevenue,
-                        (SELECT COUNT(*) FROM Members WHERE JoinDate >= @monthStart)          AS NewThisMonth";
-                using (var cmd = new SqlCommand(sql, conn))
-                using (var reader = cmd.ExecuteReader())
-                {
-                    if (reader.Read())
-                        return (
-                            Convert.ToInt32(reader["TotalMembers"]),
-                            Convert.ToInt32(reader["ActiveMembers"]),
-                            Convert.ToDecimal(reader["MonthRevenue"]),
-                            Convert.ToInt32(reader["WeekCheckIns"]),
-                            Convert.ToDecimal(reader["YearRevenue"]),
-                            Convert.ToInt32(reader["NewThisMonth"])
-                        );
-                }
+                string now = Now();
+                string monthStart = Fmt(new DateTime(DateTime.Now.Year, DateTime.Now.Month, 1));
+                string yearStart = Fmt(new DateTime(DateTime.Now.Year, 1, 1));
+                string weekAgo = Fmt(DateTime.Now.AddDays(-7));
+
+                int total = ScalarInt(conn, "SELECT COUNT(*) FROM Members");
+                int active = ScalarInt(conn, "SELECT COUNT(*) FROM Members WHERE MembershipExpiry>=@d", ("@d", now));
+                decimal monthRev = ScalarDec(conn, "SELECT IFNULL(SUM(Amount),0) FROM Payments WHERE Date>=@d", ("@d", monthStart));
+                int weekChk = ScalarInt(conn, "SELECT COUNT(*) FROM Attendance WHERE CheckInTime>=@d", ("@d", weekAgo));
+                decimal yearRev = ScalarDec(conn, "SELECT IFNULL(SUM(Amount),0) FROM Payments WHERE Date>=@d", ("@d", yearStart));
+                int newMonth = ScalarInt(conn, "SELECT COUNT(*) FROM Members WHERE JoinDate>=@d", ("@d", monthStart));
+                return (total, active, monthRev, weekChk, yearRev, newMonth);
             }
-            return (0, 0, 0m, 0, 0m, 0);
+        }
+
+        // ===== helpers =====
+        private static int ScalarInt(SQLiteConnection conn, string sql, params (string, object)[] ps)
+        {
+            using (var cmd = new SQLiteCommand(sql, conn))
+            {
+                foreach (var (k, v) in ps) cmd.Parameters.AddWithValue(k, v);
+                var r = cmd.ExecuteScalar();
+                return (r == null || r == DBNull.Value) ? 0 : Convert.ToInt32(r);
+            }
+        }
+
+        private static decimal ScalarDec(SQLiteConnection conn, string sql, params (string, object)[] ps)
+        {
+            using (var cmd = new SQLiteCommand(sql, conn))
+            {
+                foreach (var (k, v) in ps) cmd.Parameters.AddWithValue(k, v);
+                var r = cmd.ExecuteScalar();
+                return (r == null || r == DBNull.Value) ? 0m : Convert.ToDecimal(r);
+            }
         }
     }
 }

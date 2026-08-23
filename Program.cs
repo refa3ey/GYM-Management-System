@@ -11,8 +11,8 @@ namespace GYM_Desktop_app
         [STAThread]
         static void Main()
         {
-            // Resolve the writable data directory and copy the DB there on first run.
-            // Program Files is read-only for LocalDB writes, so we use %LOCALAPPDATA%.
+            // Embedded SQLite database in a writable per-user folder.
+            // No SQL Server / LocalDB required - the file is created on first run.
             string dataDir = Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
                 "GYM PRO");
@@ -20,31 +20,17 @@ namespace GYM_Desktop_app
             try
             {
                 Directory.CreateDirectory(dataDir);
-
-                string destMdf = Path.Combine(dataDir, "GymDB.mdf");
-                if (!File.Exists(destMdf))
-                {
-                    string installDir = AppDomain.CurrentDomain.BaseDirectory;
-                    string srcMdf = Path.Combine(installDir, "GymDB.mdf");
-                    string srcLdf = Path.Combine(installDir, "GymDB_log.ldf");
-
-                    File.Copy(srcMdf, destMdf);
-
-                    if (File.Exists(srcLdf))
-                        File.Copy(srcLdf, Path.Combine(dataDir, "GymDB_log.ldf"));
-                }
+                DatabaseHelper.SetDatabasePath(Path.Combine(dataDir, "gym.db"));
+                DatabaseHelper.EnsureSchema();
             }
             catch (Exception ex)
             {
                 MessageBox.Show(
-                    "Could not initialise the database folder:\n\n" + ex.Message +
+                    "Could not initialise the database:\n\n" + ex.Message +
                     "\n\nPath: " + dataDir,
                     "Startup Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
-            // Point |DataDirectory| to the writable copy
-            AppDomain.CurrentDomain.SetData("DataDirectory", dataDir);
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
@@ -52,7 +38,6 @@ namespace GYM_Desktop_app
             {
                 DatabaseHelper.SeedAdmin();
                 DatabaseHelper.SeedPlans();
-                DatabaseHelper.EnsureAttendanceTable();
             }
             catch (Exception ex)
             {
