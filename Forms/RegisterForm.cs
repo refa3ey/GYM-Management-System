@@ -17,12 +17,12 @@ namespace GYM_Desktop_app.Forms
         public RegisterForm()
         {
             InitializeComponent();
-            LoadPlans();
         }
 
         private void RegisterForm_Load(object sender, EventArgs e)
         {
             Region = System.Drawing.Region.FromHrgn(CreateRoundRectRgn(0, 0, Width, Height, 20, 20));
+            LoadPlans();   // bind after the form has a BindingContext (fixes empty dropdown)
         }
 
         private void DragPanel_MouseDown(object sender, MouseEventArgs e)
@@ -46,9 +46,10 @@ namespace GYM_Desktop_app.Forms
             try
             {
                 var plans = DatabaseHelper.GetAllPlans();
-                cmbPlan.DataSource    = plans;
+                cmbPlan.DataSource    = null;
                 cmbPlan.DisplayMember = "PlanName";
                 cmbPlan.ValueMember   = "PlanID";
+                cmbPlan.DataSource    = plans;
             }
             catch (Exception ex)
             {
